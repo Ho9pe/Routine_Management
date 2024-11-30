@@ -1,0 +1,102 @@
+.preferenceManager {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.error {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #b91c1c;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.form {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.formGroup select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: white;
+}
+
+.submitBtn {
+    background-color: #2c3e50;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+.submitBtn:hover {
+    background-color: #34495e;
+}
+
+.preferenceList {
+    margin-top: 2rem;
+}
+
+.preferences {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.preferenceCard {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preferenceInfo p {
+    margin: 0.5rem 0;
+    color: #4b5563;
+}
+
+.preferenceInfo strong {
+    color: #1f2937;
+}
+
+.deleteBtn {
+    background-color: #ef4444;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.deleteBtn:hover {
+    background-color: #dc2626;
+}
