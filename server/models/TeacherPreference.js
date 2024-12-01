@@ -34,11 +34,6 @@ const teacherPreferenceSchema = new mongoose.Schema({
         max: [5, 'Preference level must be between 1 and 5'],
         default: 3
     },
-    reason: {
-        type: String,
-        trim: true,
-        maxlength: [200, 'Reason cannot exceed 200 characters']
-    },
     created_at: {
         type: Date,
         default: Date.now

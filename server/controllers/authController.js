@@ -114,7 +114,7 @@ const login = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             { 
-                id: user._id, 
+                id: user._id,
                 role,
                 email: role === 'teacher' ? user.contact_info.email : user.email
             },

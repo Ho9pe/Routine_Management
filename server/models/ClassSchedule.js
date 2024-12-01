@@ -12,15 +12,6 @@ const classScheduleSchema = new mongoose.Schema({
         ref: 'Teacher',
         required: [true, 'Teacher ID is required']
     },
-    room_number: {
-        type: String,
-        required: [true, 'Room number is required'],
-        trim: true,
-        match: [
-            /^[A-Z0-9-]{2,10}$/,
-            'Please enter a valid room number'
-        ]
-    },
     day_of_week: {
         type: String,
         enum: {
@@ -50,15 +41,9 @@ const classScheduleSchema = new mongoose.Schema({
         required: [true, 'Section is required'],
         uppercase: true,
         match: [
-            /^[A-D]$/,
-            'Section must be A, B, C, or D'
+            /^[A-C]$/,
+            'Section must be A, B, or C'
         ]
-    },
-    capacity: {
-        type: Number,
-        required: [true, 'Room capacity is required'],
-        min: [1, 'Capacity must be at least 1'],
-        max: [200, 'Capacity cannot exceed 200']
     },
     created_at: {
         type: Date,
@@ -75,7 +60,6 @@ classScheduleSchema.index(
     { 
         day_of_week: 1, 
         time_slot: 1, 
-        room_number: 1,
         semester: 1,
         section: 1
     }, 

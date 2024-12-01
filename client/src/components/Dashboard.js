@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import styles from './Dashboard.module.css';
 import ErrorMessage from './ErrorMessage';
 import { semesterToYear, semesterOptions } from '@/utils/semesterMapping';
+import TeacherDashboardCourses from './TeacherDashboardCourses';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -36,7 +37,19 @@ export default function Dashboard() {
             const data = await response.json();
             
             if (response.ok) {
-                setProfileData(data);
+                // Transform teacher data to ensure contact_info exists
+                if (user?.role === 'teacher') {
+                    setProfileData({
+                        ...data,
+                        contact_info: {
+                            email: data.contact_info?.email || '',
+                            phone: data.contact_info?.phone || '',
+                            office: data.contact_info?.office || ''
+                        }
+                    });
+                } else {
+                    setProfileData(data);
+                }
             } else {
                 setError(data.message || 'Failed to fetch profile data');
             }
@@ -122,18 +135,42 @@ export default function Dashboard() {
                 ? '/api/teachers/profile'
                 : `/api/students/profile`;
             
+            // Transform data based on user role
+            const updateData = user?.role === 'teacher' 
+                ? {
+                    ...editFormData,
+                    contact_info: {
+                        email: editFormData.contact_info?.email || '',
+                        phone: editFormData.contact_info?.phone || '',
+                        office: editFormData.contact_info?.office || ''
+                    }
+                }
+                : editFormData;
+    
             const response = await fetch(endpoint, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify(editFormData)
+                body: JSON.stringify(updateData)
             });
             
             const data = await response.json();
             if (response.ok) {
-                setProfileData(data);
+                // Transform teacher data to ensure contact_info exists
+                if (user?.role === 'teacher') {
+                    setProfileData({
+                        ...data,
+                        contact_info: {
+                            email: data.contact_info?.email || '',
+                            phone: data.contact_info?.phone || '',
+                            office: data.contact_info?.office || ''
+                        }
+                    });
+                } else {
+                    setProfileData(data);
+                }
                 setEditFormData(null);
                 setIsEditing(false);
             } else {
@@ -212,20 +249,23 @@ export default function Dashboard() {
         </>
     );
 
-    const renderTeacherProfile = () => (
-        <>
-            <p><strong>Full Name:</strong> {profileData.full_name}</p>
-            <p><strong>Email:</strong> {profileData.contact_info?.email}</p>
-            <p><strong>Department:</strong> {profileData.department}</p>
-            <p><strong>Academic Rank:</strong> {profileData.academic_rank}</p>
-            <p><strong>Teacher ID:</strong> {profileData.teacher_id}</p>
-            <div className={styles.contactInfo}>
+    const renderTeacherProfile = () => {
+        if(!profileData) return null;
+        return (
+            <>
+                <p><strong>Full Name:</strong> {profileData.full_name}</p>
+                <p><strong>Email:</strong> {profileData.contact_info?.email}</p>
+                <p><strong>Department:</strong> {profileData.department}</p>
+                <p><strong>Academic Rank:</strong> {profileData.academic_rank}</p>
+                <p><strong>Teacher ID:</strong> {profileData.teacher_id}</p>
+                <div className={styles.contactInfo}>
                 <h4>Contact Information</h4>
                 <p><strong>Phone:</strong> {profileData.contact_info?.phone || 'Not provided'}</p>
                 <p><strong>Office:</strong> {profileData.contact_info?.office || 'Not provided'}</p>
-            </div>
-        </>
-    );
+                </div>
+            </>
+        );
+    };
 
     const renderStudentEditForm = () => (
         <>
@@ -288,18 +328,21 @@ export default function Dashboard() {
         </>
     );
 
-    const renderStudentProfile = () => (
-        <>
-            <p><strong>Full Name:</strong> {profileData.full_name}</p>
-            <p><strong>Email:</strong> {profileData.email}</p>
-            <p><strong>Department:</strong> {profileData.department}</p>
-            <p><strong>Student Roll:</strong> {profileData.student_roll}</p>
-            <p><strong>Semester:</strong> {semesterToYear(profileData.semester)}</p>
-            {profileData?.batch && (
-                <p><strong>Batch:</strong> {profileData.batch}</p>
-            )}
-        </>
-    );
+    const renderStudentProfile = () => {
+        if(!profileData) return null;
+        return (
+            <>
+                <p><strong>Full Name:</strong> {profileData.full_name}</p>
+                <p><strong>Email:</strong> {profileData.email}</p>
+                <p><strong>Department:</strong> {profileData.department}</p>
+                <p><strong>Student Roll:</strong> {profileData.student_roll}</p>
+                <p><strong>Semester:</strong> {semesterToYear(profileData.semester)}</p>
+                {profileData?.batch && (
+                    <p><strong>Batch:</strong> {profileData.batch}</p>
+                )}
+            </>
+        );
+    };
 
     if (loading) return <div className={styles.loading}>Loading...</div>;
 
@@ -394,6 +437,8 @@ export default function Dashboard() {
                     </form>
                 )}
             </div>
+
+            {user?.role === 'teacher' && <TeacherDashboardCourses />}
         </div>
     );
 }

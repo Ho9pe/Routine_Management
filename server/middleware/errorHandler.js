@@ -1,5 +1,11 @@
 const errorHandler = (err, req, res, next) => {
-    console.error(err.stack);
+    console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        path: req.path,
+        method: req.method,
+        user: req.user
+    });
     
     if (err.name === 'ValidationError') {
         return res.status(400).json({ 
@@ -12,7 +18,10 @@ const errorHandler = (err, req, res, next) => {
         return res.status(401).json({ message: 'Invalid token' });
     }
     
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ 
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
 };
 
 module.exports = errorHandler;
