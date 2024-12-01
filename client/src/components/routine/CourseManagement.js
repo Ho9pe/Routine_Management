@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import styles from './CourseManagement.module.css';
-import ErrorMessage from './ErrorMessage';
-import { semesterToYear } from '@/utils/semesterMapping';
-import { getSemesterFromCourseCode } from '@/utils/courseUtils';
+import ErrorMessage from '../common/ErrorMessage';
+import { semesterToYear } from '@/lib/semesterMapping';
+import { getSemesterFromCourseCode } from '@/lib/courseUtils';
 
 export default function CourseManagement() {
     const { user } = useAuth();
@@ -113,22 +113,26 @@ export default function CourseManagement() {
         
         if (!newAssignment.course_id || !newAssignment.sections.length) {
             setError('Please select a course and at least one section');
-            setShowAssignForm(false); // Close dialog on validation error
+            setShowAssignForm(false);
             return;
         }
     
-        // Check if course is already assigned with any of the selected sections
-        const duplicateAssignment = assignedCourses.find(assignment => 
-            assignment.course_id._id === newAssignment.course_id &&
-            assignment.sections.some(section => 
-                newAssignment.sections.includes(section)
-            )
+        // Find existing assignment for this course
+        const existingAssignment = assignedCourses.find(assignment => 
+            assignment.course_id._id === newAssignment.course_id
         );
     
-        if (duplicateAssignment) {
-            setError('You have already been assigned to this course for one or more of these sections');
-            setShowAssignForm(false); // Close dialog on duplicate error
-            return;
+        // Check for duplicate sections
+        if (existingAssignment) {
+            const duplicateSections = newAssignment.sections.filter(section => 
+                existingAssignment.sections.includes(section)
+            );
+            
+            if (duplicateSections.length > 0) {
+                setError(`Section(s) ${duplicateSections.join(', ')} already assigned for this course`);
+                setShowAssignForm(false);
+                return;
+            }
         }
     
         try {
@@ -146,22 +150,21 @@ export default function CourseManagement() {
             const data = await response.json();
             
             if (response.ok) {
-                setAssignedCourses(prev => [...prev, data]);
+                // Refresh the course list to get the updated data
+                await fetchAssignedCourses();
                 setShowAssignForm(false);
                 setNewAssignment({
                     course_id: '',
                     sections: []
                 });
-                // Refresh the course list
-                fetchAssignedCourses();
             } else {
                 setError(data.message || 'Failed to assign course');
-                setShowAssignForm(false); // Close dialog on API error
+                setShowAssignForm(false);
             }
         } catch (error) {
             console.error('Error assigning course:', error);
             setError('Failed to assign course');
-            setShowAssignForm(false); // Close dialog on network error
+            setShowAssignForm(false);
         }
     };
 
@@ -241,6 +244,30 @@ export default function CourseManagement() {
         });
     };
 
+    const groupAssignmentsByCourse = (assignments) => {
+        return assignments.reduce((acc, curr) => {
+            const existingCourse = acc.find(item => 
+                item.course_id._id === curr.course_id._id
+            );
+    
+            if (existingCourse) {
+                // Merge sections and remove duplicates
+                existingCourse.sections = [...new Set([
+                    ...existingCourse.sections,
+                    ...curr.sections
+                ])].sort();
+                // Keep the most recent assignment ID
+                existingCourse._id = curr._id;
+            } else {
+                acc.push({
+                    ...curr,
+                    sections: [...curr.sections]
+                });
+            }
+            return acc;
+        }, []);
+    };
+
     // Filter courses based on student's semester
     const filteredCourses = courses.filter(course => {
         if (!studentProfile?.semester) return true; // Show all courses if no semester is set
@@ -280,7 +307,7 @@ export default function CourseManagement() {
             {user?.role === 'teacher' ? (
                 // Teacher View
                 <div className={styles.courseGrid}>
-                    {assignedCourses?.map(assignment => (
+                    {groupAssignmentsByCourse(assignedCourses)?.map(assignment => (
                         <div key={assignment._id} className={styles.courseCard}>
                             <div className={styles.courseHeader}>
                                 <h4 className={styles.courseCode}>

@@ -1,5 +1,5 @@
-import AdminDashboard from '@/components/AdminDashboard';
-import AuthLayout from '@/components/AuthLayout';
+import AdminDashboard from '@/components/dashboard/AdminDashboard';
+import AuthLayout from '@/components/common/AuthLayout';
 
 export default function AdminDashboardPage() {
     return (

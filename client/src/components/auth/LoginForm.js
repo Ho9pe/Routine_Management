@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import styles from './LoginForm.module.css';
-import ErrorMessage from './ErrorMessage';
+import ErrorMessage from '../common/ErrorMessage';
 
 export default function LoginForm() {
     const router = useRouter();

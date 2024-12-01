@@ -1,18 +1,20 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth');
-const courseRoutes = require('./routes/courses');
-const teacherRoutes = require('./routes/teachers');
-const preferenceRoutes = require('./routes/preferences');
-const scheduleRoutes = require('./routes/schedule');
-const adminRoutes = require('./routes/admin');
-const studentRoutes = require('./routes/students');
-const errorHandler = require('./middleware/errorHandler');
+const connectDB = require('./src/config/database');
+const errorHandler = require('./src/middleware/errorHandler');
+
+// Import routes
+const authRoutes = require('./src/routes/auth');
+const courseRoutes = require('./src/routes/courses');
+const teacherRoutes = require('./src/routes/teachers');
+const preferenceRoutes = require('./src/routes/preferences');
+const scheduleRoutes = require('./src/routes/schedule');
+const adminRoutes = require('./src/routes/admin');
+const studentRoutes = require('./src/routes/students');
 
 const app = express();
 
@@ -27,8 +29,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan('dev'));
 
-
-// Routers
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/teachers', teacherRoutes);
@@ -40,10 +41,8 @@ app.use('/api/students', studentRoutes);
 // Error Handler
 app.use(errorHandler);
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_LOCAL_URL)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+// Connect to Database
+connectDB();
 
 // Basic route
 app.get('/', (req, res) => {
@@ -51,7 +50,14 @@ app.get('/', (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+    console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+    console.log(err.name, err.message);
+    process.exit(1);
 });

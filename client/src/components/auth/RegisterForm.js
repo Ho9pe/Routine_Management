@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './RegisterForm.module.css';
-import ErrorMessage from './ErrorMessage';
+import ErrorMessage from '../common/ErrorMessage';
 
 export default function RegisterForm() {
     const router = useRouter();

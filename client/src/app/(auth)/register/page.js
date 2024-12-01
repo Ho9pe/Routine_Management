@@ -1,5 +1,5 @@
-import RegisterForm from '@/components/RegisterForm';
-import Navigation from '@/components/Navigation';
+import RegisterForm from '@/components/auth/RegisterForm';
+import Navigation from '@/components/common/Navigation';
 
 export default function RegisterPage() {
     return (

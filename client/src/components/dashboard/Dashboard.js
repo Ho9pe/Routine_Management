@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import styles from './Dashboard.module.css';
-import ErrorMessage from './ErrorMessage';
-import { semesterToYear, semesterOptions } from '@/utils/semesterMapping';
+import ErrorMessage from '../common/ErrorMessage';
+import { semesterToYear, semesterOptions } from '@/lib/semesterMapping';
 import TeacherDashboardCourses from './TeacherDashboardCourses';
 
 export default function Dashboard() {

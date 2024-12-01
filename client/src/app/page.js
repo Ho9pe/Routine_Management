@@ -1,4 +1,4 @@
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/common/Navigation';
 import styles from './page.module.css';
 import Link from 'next/link';
 

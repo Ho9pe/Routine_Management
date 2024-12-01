@@ -1,5 +1,5 @@
-import LoginForm from '@/components/LoginForm';
-import Navigation from '@/components/Navigation';
+import LoginForm from '@/components/auth/LoginForm';
+import Navigation from '@/components/common/Navigation';
 
 export default function LoginPage() {
     return (

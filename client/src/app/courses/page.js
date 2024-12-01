@@ -1,6 +1,6 @@
-import AuthLayout from '@/components/AuthLayout';
-import CourseManagement from '@/components/CourseManagement';
-import Navigation from '@/components/Navigation';
+import AuthLayout from '@/components/common/AuthLayout';
+import CourseManagement from '@/components/routine/CourseManagement';
+import Navigation from '@/components/common/Navigation';
 
 export default function CoursesPage() {
     return (

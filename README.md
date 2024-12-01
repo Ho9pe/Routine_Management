@@ -1,241 +1,204 @@
 # University Routine Manager
 
 ## Project Overview
-A web application for managing university class routines with separate panels for students and teachers. Teachers can input their preferences and schedules, while students can view their class routines. The system automatically generates routines based on academic rank priorities.
+A web application for managing university class routines with role-based access for students, teachers, and administrators. The system features course management, schedule preferences, and automated routine generation.
 
-## System Architecture
-- **Frontend:** React.js/Next.js - Vanilla JS, CSS
-- **Backend:** Node.js with Express.js - Vanilla JS
-- **Database:** MongoDB
-- **Authentication:** JWT/OAuth
+## Current Implementation Status
 
-## Database Schema
+### ✅ Completed Features
 
-### Students
-- student_roll (PK)
-- username
-- password (hashed)
-- email
-- department
-- created_at
+#### Authentication & Authorization
+- JWT-based authentication system
+- Role-based access control (Student/Teacher/Admin)
+- Protected routes and middleware
+- User registration and login
+- Password reset functionality
 
-### Teachers
-- teacher_id (PK)
-- full_name
-- academic_rank
-- department
-- contact_info
-
-### Courses
-- course_id (PK)
-- course_code
-- course_name
-- credit_hours
-- department
-
-### Teacher_Preferences
-- preference_id (PK)
-- teacher_id (FK)
-- day_of_week
-- preferred_time_slot
-- course_id (FK)
-
-### Class_Schedule
-- schedule_id (PK)
-- course_id (FK)
-- teacher_id (FK)
-- room_number
-- day_of_week
-- time_slot
-- semester
-
-## Features Breakdown
-
-### Authentication System
-- User registration
-- Login/Logout
-- Role-based access control
-- Password recovery
-
-### Teacher Panel
-1. **Profile Management**
-   - Personal information
-   - Academic credentials
-   - Contact details
-2. **Course Management**
-   - Assign courses
-   - View assigned courses
-   - Course history
-3. **Schedule Preferences**
-   - Set preferred time slots
-   - Set preferred days
-   - Mark unavailable times
-
-### Student Panel
-1. **View Features**
-   - Weekly class routine
-   - Course schedule
-   - Teacher information
-   - Room allocation
-2. **Filter Options**
-   - By day
-   - By course
-   - By teacher
-
-### Admin Panel
-1. **Management Features**
-   - User management
-   - Course management
-   - Room allocation
-   - Schedule generation
-2. **Schedule Generator Algorithm**
-   - Priority based on academic rank
-   - Conflict resolution
-   - Room availability check
-   - Time slot optimization
-
-## Technical Implementation Steps
-
-### Phase 1: Setup & Basic Structure
-- Project initialization
-- Database setup
-- Basic authentication
-- User management
-
-### Phase 2: Core Features
+#### User Management
+- Student profile management
 - Teacher profile system
-- Preference management
-- Basic routine display
-- Course management
+- Academic credentials handling
+- Contact information management
 
-### Phase 3: Schedule Generator
-- Algorithm development
-- Priority queue implementation
-- Conflict resolution logic
-- Optimization rules
+#### Course Management
+- Course listing and filtering
+- Course assignment system
+- Section-based course allocation
+- Credit hour tracking
+- Course type categorization (Theory/Sessional/Project)
 
-### Phase 4: UI/UX Development
-- Responsive design
-- Interactive calendar
-- Filter implementations
-- Schedule visualization
+#### Teacher Features
+- Course assignment management
+- Multiple section handling
+- Academic rank-based privileges
+- Basic preference setting
 
-
-
-
-## Implementation Status
-
-### Phase 1: Setup & Basic Structure ✅
-
-#### 1. Project Setup ✅
-- Next.js frontend configured
-- Express.js backend configured
-- MongoDB connection established
-- Project structure organized
-
-#### 2. Database Models ✅
-- User model
-- Teacher model
-- Student model
-- Course model
-- TeacherPreference model
-- ClassSchedule model
-
-#### 3. Authentication System ✅
-- JWT implementation
-- Login/Logout functionality
-- Registration system
-- Password hashing
-- Token management
-- Protected routes
-
-#### 4. Authorization ✅
-- Role-based access control
-- Admin routes protection
-- Teacher routes protection
-- Student routes protection
-
-### Phase 2: Core Features
-
-#### 1. Course Management ✅
-- Course listing
-- Course creation (admin)
-- Course editing (admin)
-- Course deletion (admin)
-- Course viewing (all users)
-
-#### 2. Teacher Profile System ✅
-- Profile viewing
-- Profile editing
-- Academic details
-- Contact information
-
-#### 3. Admin Dashboard ✅
-- Statistics overview
-- Quick actions
-- Management links
-- Admin-only access
-
-#### 4. Navigation System ✅
+#### UI/UX
+- Responsive design implementation
 - Role-based navigation
-- Protected routes
-- Active route highlighting
-- Responsive design
+- Dark theme interface
+- Interactive components
+- Error handling and notifications
 
-### Partially Implemented Features 🔄
 
-#### 1. Preference Management
-- ✅ Model and routes created
-- ✅ Basic UI implemented
-- ❌ Validation for conflicting preferences
-- ❌ Advanced preference rules
 
-#### 2. Routine Display
-- ✅ Basic schedule display
-- ✅ Filtering options
-- ❌ Print functionality
-- ❌ Export options
+#### Schedule Management
+- Basic routine display
+- Time slot management
+- Day-wise scheduling
+- Basic filtering options
 
-#### 3. Admin Features
-- ✅ Basic dashboard
-- ✅ Course management
-- ❌ Room management
-- ❌ Department management
+#### Preference System
+- Basic preference setting
+- Time slot selection
+- Day preference options
 
-### Pending Features ❌
+#### Admin Controls
+- Basic dashboard statistics
+- Course management interface
+- User overview system
 
-#### 1. Schedule Generation
-- Automatic routine generation
-- Conflict resolution
-- Priority-based scheduling
-- Room allocation
+### ❌ Pending Implementation
 
-#### 2. Advanced Management
-- Room management system
-- Department management
+#### 1. Schedule Generation System
+- Automated routine generation algorithm
+- Academic rank-based priority system
+- Conflict detection and resolution
+- Room allocation optimization
+- Section-wise schedule distribution
+
+#### 2. Advanced Preference Management
+- Conflict validation
+- Priority-based preference handling
+- Time slot optimization
+- Workload distribution
+
+#### 3. Room Management
+- Room inventory system
+- Capacity management
+- Type-based allocation (Lab/Theory)
+- Availability tracking
+
+#### 4. Department Management
+- Department-wise course organization
+- Faculty assignment
+- Resource allocation
 - Semester management
-- Batch management
 
-#### 3. Additional Features
+#### 5. Enhanced Features
+- Schedule export functionality
+- Print optimization
 - Email notifications
-- Schedule export
 - Batch operations
-- Advanced search
-- Reports generation
+- Advanced search capabilities
+- Report generation
 
+## Technical Stack
+- Frontend: Next.js 13+ with App Router
+- Backend: Express.js
+- Database: MongoDB
+- Authentication: JWT
+- Styling: CSS Modules
 
-## Next Steps
+## Database Models
 
-### 1. Complete Phase 2
-- Implement login/logout, register ✅
-- Implement database connection, fetch, insert, update, delete ✅
-- Implement Teacher Profile System
-- Implement full preference management
-- Enhance routine display
-- Complete admin features
+### User Models
 
-### 2. Start Phase 3
-- Schedule generator algorithm
-- Room allocation system
-- Department management
-- Advanced features
+#### Student
+- `full_name`: String (required)
+- `student_roll`: String (required, unique, 7 digits)
+- `email`: String (required, unique)
+- `password`: String (hashed)
+- `department`: String (required)
+- `semester`: Number (1-8)
+- `batch`: String (e.g., "2023")
+- `created_at`: Date
+- `updated_at`: Date
+
+#### Teacher
+- `teacher_id`: String (required, unique)
+- `password`: String (hashed)
+- `full_name`: String (required)
+- `academic_rank`: String (enum: Professor, Associate Professor, Assistant Professor, Lecturer)
+- `department`: String (required)
+- `contact_info`:
+  - `email`: String (required, unique)
+  - `phone`: String
+  - `office`: String
+- `created_at`: Date
+- `updated_at`: Date
+
+#### Admin
+- `admin_id`: String (required, unique, format: ADM001)
+- `email`: String (required, unique)
+- `password`: String (hashed)
+- `name`: String (required)
+- `role`: String (enum: admin, super_admin)
+- `department`: String (required)
+- `contact_info`:
+  - `phone`: String
+  - `office`: String
+- `last_login`: Date
+- `created_at`: Date
+- `updated_at`: Date
+
+### Academic Models
+
+#### Course
+- `course_code`: String (required, unique, format: CSE-1101)
+- `course_name`: String (required)
+- `course_type`: String (enum: theory, sessional, project, thesis)
+- `theory_hours`: Number (0-6)
+- `practical_hours`: Number (0-6)
+- `credit_hours`: Number (0.75-4)
+- `department`: String (required)
+- `semester`: Number (1-8)
+- `created_at`: Date
+- `updated_at`: Date
+
+#### TeacherCourseAssignment
+- `teacher_id`: ObjectId (ref: Teacher)
+- `course_id`: ObjectId (ref: Course)
+- `semester`: Number (1-8)
+- `academic_year`: String
+- `sections`: Array of String (A, B, C)
+- Timestamps: true
+
+#### TeacherPreference
+- `teacher_id`: ObjectId (ref: Teacher)
+- `day_of_week`: String (enum: Working Days)
+- `preferred_time_slot`: String (ref: Time Slots)
+- `course_id`: ObjectId (ref: Course)
+- `preference_level`: Number (1-5)
+- `created_at`: Date
+- `updated_at`: Date
+
+#### ClassSchedule
+- `course_id`: ObjectId (ref: Course)
+- `teacher_id`: ObjectId (ref: Teacher)
+- `day_of_week`: String (enum: Working Days)
+- `time_slot`: String (ref: Time Slots)
+- `semester`: String (1-8)
+- `section`: String (A, B, C)
+- `created_at`: Date
+- `updated_at`: Date
+
+### Constants
+
+#### Time Slots
+- 9 periods per day
+- Format: { id, period, time }
+- Example: { id: '1', period: '1st', time: '8:00-8:50 AM' }
+
+#### Working Days
+- Saturday through Wednesday
+
+### Database Indexes
+- Compound indexes for preventing scheduling conflicts
+- Indexes for efficient course and teacher queries
+- Unique constraints on critical fields
+
+### Data Validation
+- Input validation using Mongoose schemas
+- Custom validation middleware
+- Error handling for duplicate entries

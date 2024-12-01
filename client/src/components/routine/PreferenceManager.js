@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { TIME_SLOTS, WORKING_DAYS } from '../../../server/constants/timeSlots';
+import { TIME_SLOTS, WORKING_DAYS } from '../../../../server/constants/timeSlots';
 import styles from './PreferenceManager.module.css';
 
 export default function PreferenceManager() {
