@@ -14,58 +14,89 @@ export default function Navigation() {
         logout();
     };
 
+    const renderAdminNav = () => (
+        <div className={styles.navLinks}>
+            <Link href="/admin/panel" className={isActive('/admin/panel') ? styles.active : ''}>
+                Admin Panel
+            </Link>
+            <Link href="/admin/dashboard" className={isActive('/admin/dashboard') ? styles.active : ''}>
+                Dashboard
+            </Link>
+            <button 
+                onClick={handleLogout}
+                className={styles.logoutButton}
+            >
+                Logout
+            </button>
+        </div>
+    );
+
+    const renderTeacherNav = () => (
+        <div className={styles.navLinks}>
+            <Link href="/teacher/courses" className={isActive('/teacher/courses') ? styles.active : ''}>
+                My Courses
+            </Link>
+            <Link href="/teacher/dashboard" className={isActive('/teacher/dashboard') ? styles.active : ''}>
+                Dashboard
+            </Link>
+            <button 
+                onClick={handleLogout}
+                className={styles.logoutButton}
+            >
+                Logout
+            </button>
+        </div>
+    );
+
+    const renderStudentNav = () => (
+        <div className={styles.navLinks}>
+            <Link href="/student/courses" className={isActive('/student/courses') ? styles.active : ''}>
+                My Courses
+            </Link>
+            <Link href="/student/dashboard" className={isActive('/student/dashboard') ? styles.active : ''}>
+                Dashboard
+            </Link>
+            <button 
+                onClick={handleLogout}
+                className={styles.logoutButton}
+            >
+                Logout
+            </button>
+        </div>
+    );
+
+    const renderPublicNav = () => (
+        <div className={styles.navLinks}>
+            <Link 
+                href="/register"
+                className={isActive('/register') ? styles.active : ''}
+            >
+                Register
+            </Link>
+            <Link 
+                href="/login"
+                className={isActive('/login') ? styles.active : ''}
+            >
+                Login
+            </Link>
+        </div>
+    );
+
     return (
         <nav className={styles.nav}>
-            <div className={styles.logo}>
-                {user ? (
-                    <Link href={user.role === 'student' ? '/student/routine' : '/'}>
-                        My Routine
-                    </Link>
-                ) : (
-                    <Link href="/">
-                        University Routine Manager
-                    </Link>
-                )}
-            </div>
-            <div className={styles.links}>
-                {user ? (
-                    <>
-                        <Link 
-                            href="/courses"
-                            className={isActive('/courses') ? styles.active : ''}
-                        >
-                            My Courses
-                        </Link>
-                        <Link 
-                            href="/dashboard"
-                            className={isActive('/dashboard') ? styles.active : ''}
-                        >
-                            Dashboard
-                        </Link>
-                        <button 
-                            onClick={handleLogout}
-                            className={styles.logoutButton}
-                        >
-                            Logout
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <Link 
-                            href="/register"
-                            className={isActive('/register') ? styles.active : ''}
-                        >
-                            Register
-                        </Link>
-                        <Link 
-                            href="/login"
-                            className={isActive('/login') ? styles.active : ''}
-                        >
-                            Login
-                        </Link>
-                    </>
-                )}
-            </div>
+            <Link href="/" className={styles.logo}>
+                University Routine Manager
+            </Link>
+            
+            {user ? (
+                <>
+                    {user.role === 'admin' && renderAdminNav()}
+                    {user.role === 'teacher' && renderTeacherNav()}
+                    {user.role === 'student' && renderStudentNav()}
+                </>
+            ) : (
+                renderPublicNav()
+            )}
         </nav>
     );
 }

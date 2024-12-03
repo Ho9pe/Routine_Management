@@ -1,4 +1,6 @@
 import { AuthProvider } from '@/context/AuthContext';
+import Navigation from '@/components/common/Navigation';
+import RouteTransition from '@/components/common/RouteTransition';
 import './globals.css';
 
 export default function RootLayout({ children }) {
@@ -6,7 +8,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <AuthProvider>
-          {children}
+          <Navigation />
+          <RouteTransition>
+            {children}
+          </RouteTransition>
         </AuthProvider>
       </body>
     </html>

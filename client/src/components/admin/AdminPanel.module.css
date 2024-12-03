@@ -1,0 +1,169 @@
+.adminPanel {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    color: #60a5fa;
+    font-size: 2rem;
+}
+
+.searchBar input {
+    padding: 0.75rem 1rem;
+    border: 1px solid #3d3d3d;
+    border-radius: 6px;
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    width: 300px;
+}
+
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #3d3d3d;
+}
+
+.tab {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tab.active {
+    color: #60a5fa;
+    border-bottom: 2px solid #60a5fa;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #3d3d3d;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table th {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.table tr:hover {
+    background-color: #363636;
+}
+
+.deleteButton {
+    padding: 0.5rem 1rem;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+    background-color: #dc2626;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #9ca3af;
+}
+
+.sortableHeader {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+    background-color: #363636;
+}
+
+.headerContent {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+
+.sortIcon {
+    color: #60a5fa;
+    font-size: 0.875rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: capitalize;
+    display: inline-block;
+}
+
+
+.theory {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+}
+
+.sessional {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+}
+
+.project {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+}
+
+.thesis {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: #a78bfa;
+}
+
+@media (max-width: 768px) {
+    .adminPanel {
+        padding: 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .searchBar input {
+        width: 100%;
+    }
+
+    .tabs {
+        overflow-x: auto;
+    }
+}

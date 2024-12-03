@@ -46,7 +46,7 @@ export default function TeacherDashboardCourses() {
                         Total Courses: {assignedCourses.length}
                     </p>
                 </div>
-                <Link href="/courses" className={styles.viewAllButton}>
+                <Link href="/teacher/courses" className={styles.viewAllButton}>
                     View All Courses
                 </Link>
             </div>
@@ -60,6 +60,9 @@ export default function TeacherDashboardCourses() {
                             </div>
                             <div className={styles.courseDetails}>
                                 <p>{assignment.course_id?.course_name || 'N/A'}</p>
+                                <p>Credit Hours: {assignment.course_id?.credit_hours}</p>
+                                <p>Contact Hours: {assignment.course_id?.contact_hours}</p>
+                                <p>Type: {assignment.course_id?.course_type}</p>
                                 <p>Sections: {assignment.sections.join(', ')}</p>
                             </div>
                         </div>

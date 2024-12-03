@@ -3,42 +3,36 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('@fast-csv/parse');
-const Course = require('../../models/Course');
+const Course = require('../../src/models/Course');
+const { determineCourseType } = require('../../src/utils/courseTypeUtils');
 
 async function validateCourseData(data) {
     const errors = [];
-    
     if (!data || !Array.isArray(data) || data.length === 0) {
         errors.push('Input data is empty or invalid');
         return errors;
     }
-
     data.forEach((row, index) => {
         // Validate Course Code
         if (!row['Course Code'] || !/^[A-Z]{2,4}-\d{4}$/.test(row['Course Code'].trim())) {
             errors.push(`Row ${index + 1}: Invalid course code format`);
         }
-
         // Validate Credit Hours
         const creditHours = parseFloat(row['Credit Hours']);
         if (isNaN(creditHours) || creditHours < 0.75 || creditHours > 4) {
             errors.push(`Row ${index + 1}: Invalid credit hours`);
         }
-
-        // Validate Hours
-        const theoryHours = parseFloat(row['Theory Hours'] || 0);
-        const practicalHours = parseFloat(row['Practical Hours'] || 0);
-        if (isNaN(theoryHours) || isNaN(practicalHours)) {
-            errors.push(`Row ${index + 1}: Invalid hours format`);
+        // Validate Contact Hours
+        const contactHours = parseFloat(row['Contact Hours']);
+        if (isNaN(contactHours) || contactHours < 0 || contactHours > 6) {
+            errors.push(`Row ${index + 1}: Invalid contact hours`);
         }
-
         // Validate Semester
         const semester = parseInt(row['Semester']);
         if (isNaN(semester) || semester < 1 || semester > 8) {
             errors.push(`Row ${index + 1}: Invalid semester`);
         }
     });
-
     return errors;
 }
 
@@ -47,7 +41,6 @@ async function processCourseData(filePath) {
         const courses = [];
         const stream = fs.createReadStream(filePath)
             .pipe(parse({ headers: true, skipRows: 0 }));
-
         stream.on('error', error => reject(error));
         stream.on('data', row => courses.push(row));
         stream.on('end', () => resolve(courses));
@@ -62,19 +55,15 @@ async function seedCourses() {
             connectTimeoutMS: 10000
         });
         console.log('Connected to MongoDB');
-
-        const csvFilePath = path.join(__dirname, '../../data/courses.csv');
-        
+        const csvFilePath = path.join(__dirname, '../../data/courses_final.csv');
         // Verify file exists and is accessible
         try {
             await fs.promises.access(csvFilePath, fs.constants.R_OK);
         } catch (error) {
             throw new Error(`Cannot access file at ${csvFilePath}`);
         }
-
         // Process CSV data
         const courseData = await processCourseData(csvFilePath);
-
         // Validate data
         const validationErrors = await validateCourseData(courseData);
         if (validationErrors.length > 0) {
@@ -82,38 +71,21 @@ async function seedCourses() {
             validationErrors.forEach(error => console.error(`- ${error}`));
             throw new Error('Data validation failed');
         }
-
         // Clear existing courses
         await Course.deleteMany({});
         console.log('Cleared existing courses');
-
         // Transform and prepare course documents
         const courses = courseData.map(row => {
-            // Extract department from course code (e.g., "CSE" from "CSE-3101")
-            const department = row['Course Code'].split('-')[0].trim();
-            
-            // Determine course type based on hours
-            const theoryHours = parseFloat(row['Theory Hours'] || 0);
-            const practicalHours = parseFloat(row['Practical Hours'] || 0);
-            
-            let courseType;
-            if (row['Course Code'].includes('4000')) {
-                courseType = 'thesis';
-            } else if (theoryHours > 0 && practicalHours === 0) {
-                courseType = 'theory';
-            } else {
-                courseType = 'sessional';
-            }
-
+            const courseCode = row['Course Code'].trim();
+            const courseName = row['Course Name'].trim();
             return {
-                course_code: row['Course Code'].trim(),
-                course_name: row['Course Name'].trim(),
-                course_type: courseType,
-                theory_hours: theoryHours,
-                practical_hours: practicalHours,
+                course_code: courseCode,
+                course_name: courseName,
+                contact_hours: parseFloat(row['Contact Hours']),
                 credit_hours: parseFloat(row['Credit Hours']),
-                department: department,
-                semester: parseInt(row['Semester'])
+                department: courseCode.split('-')[0].trim(),
+                semester: parseInt(row['Semester']),
+                course_type: determineCourseType(courseCode, courseName)
             };
         });
 

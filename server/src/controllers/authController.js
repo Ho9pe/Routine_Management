@@ -46,8 +46,7 @@ const register = async (req, res) => {
                 email,
                 password: hashedPassword,
                 department,
-                batch: `20${student_roll.substring(0, 2)}`,
-                semester: Math.ceil(parseInt(student_roll.substring(0, 2)) * 2)
+                batch: `20${student_roll.substring(0, 2)}`
             });
             await student.save();
             console.log('Student saved:', student);
@@ -122,26 +121,48 @@ const login = async (req, res) => {
             { expiresIn: '1d' }
         );
 
-        res.json({
-            token,
-            user: {
-                id: user._id,
-                email: role === 'teacher' ? user.contact_info.email : user.email,
-                role,
-                department: user.department,
-                full_name: user.full_name,
-                ...(role === 'student' && { 
-                    student_roll: user.student_roll,
-                    semester: user.semester,
-                    batch: user.batch
-                }),
-                ...(role === 'teacher' && {
+        // Return user data based on role
+        if (role === 'admin') {
+            res.json({
+                token,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    role: 'admin',
+                    name: user.name,
+                    admin_id: user.admin_id,
+                    contact_info: user.contact_info
+                }
+            });
+        } else if (role === 'teacher') {
+            res.json({
+                token,
+                user: {
+                    id: user._id,
+                    email: user.contact_info.email,
+                    role,
+                    department: user.department,
+                    full_name: user.full_name,
                     teacher_id: user.teacher_id,
                     academic_rank: user.academic_rank,
                     contact_info: user.contact_info
-                })
-            }
-        });
+                }
+            });
+        } else {
+            res.json({
+                token,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    role,
+                    department: user.department,
+                    full_name: user.full_name,
+                    student_roll: user.student_roll,
+                    semester: user.semester,
+                    batch: user.batch
+                }
+            });
+        }
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });

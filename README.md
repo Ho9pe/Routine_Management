@@ -60,24 +60,22 @@ A web application for managing university class routines with role-based access 
 
 ### ❌ Pending Implementation
 
-#### 1. Schedule Generation System
+#### 1. Admin Management
+- Admin Dashboard
+- Admin Management Interface
+
+#### 2. Schedule Generation System
 - Automated routine generation algorithm
 - Academic rank-based priority system
 - Conflict detection and resolution
 - Room allocation optimization
 - Section-wise schedule distribution
 
-#### 2. Advanced Preference Management
+#### 3. Advanced Preference Management
 - Conflict validation
 - Priority-based preference handling
 - Time slot optimization
 - Workload distribution
-
-#### 3. Room Management
-- Room inventory system
-- Capacity management
-- Type-based allocation (Lab/Theory)
-- Availability tracking
 
 #### 4. Department Management
 - Department-wise course organization

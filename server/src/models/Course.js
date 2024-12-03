@@ -27,17 +27,11 @@ const courseSchema = new mongoose.Schema({
             message: '{VALUE} is not a valid course type'
         }
     },
-    theory_hours: {
+    contact_hours: {
         type: Number,
-        default: 0,
-        min: [0, 'Theory hours cannot be negative'],
-        max: [6, 'Theory hours cannot exceed 6']
-    },
-    practical_hours: {
-        type: Number,
-        default: 0,
-        min: [0, 'Practical hours cannot be negative'],
-        max: [6, 'Practical hours cannot exceed 6']
+        required: [true, 'Contact hours are required'],
+        min: [0, 'Contact hours cannot be negative'],
+        max: [6, 'Contact hours cannot exceed 6']
     },
     credit_hours: {
         type: Number,
@@ -60,49 +54,38 @@ const courseSchema = new mongoose.Schema({
         required: [true, 'Semester is required'],
         min: [1, 'Semester must be between 1 and 8'],
         max: [8, 'Semester must be between 1 and 8']
-    },
-    created_at: {
-        type: Date,
-        default: Date.now
-    },
-    updated_at: {
-        type: Date,
-        default: Date.now
     }
+}, {
+    timestamps: true
 });
 
 // Compound index for efficient querying
 courseSchema.index({ department: 1, semester: 1, course_type: 1 });
 courseSchema.index({ course_code: 1, department: 1 }, { unique: true });
 
-// Update timestamp on save
+// Update the course type determination logic
 courseSchema.pre('save', function(next) {
-    this.updated_at = new Date();
-    next();
-});
+    // Extract the last 4 digits from course code
+    const codeNumber = this.course_code.split('-')[1];
+    const lastDigit = parseInt(codeNumber[3]);
+    const isEven = lastDigit % 2 === 0;
+    const endsWithZero = lastDigit === 0;
+    const nameIncludes = (str) => this.course_name.toLowerCase().includes(str.toLowerCase());
 
-// Automatically determine course type based on hours
-courseSchema.pre('save', function(next) {
-    if (this.theory_hours > 0 && this.practical_hours === 0) {
-        this.course_type = 'theory';
-    } else if (this.theory_hours === 0 && this.practical_hours > 0) {
-        if (this.course_code.includes('4000')) {
+    // Determine course type based on the rules
+    if (endsWithZero) {
+        if (nameIncludes('thesis')) {
             this.course_type = 'thesis';
-        } else {
-            this.course_type = 'sessional';
+        } else if (nameIncludes('project')) {
+            this.course_type = 'project';
         }
+    } else if (isEven) {
+        this.course_type = 'sessional';
+    } else {
+        this.course_type = 'theory';
     }
+
     next();
 });
-
-// Virtual for full course name
-courseSchema.virtual('full_course_name').get(function() {
-    return `${this.course_code} - ${this.course_name}`;
-});
-
-// Method to get total hours per week
-courseSchema.methods.getTotalHoursPerWeek = function() {
-    return this.theory_hours + this.practical_hours;
-};
 
 module.exports = mongoose.model('Course', courseSchema);

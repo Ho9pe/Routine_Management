@@ -1,11 +1,9 @@
-import Navigation from '@/components/common/Navigation';
 import styles from './page.module.css';
 import Link from 'next/link';
 
 export default function Home() {
   return (
     <div className={styles.container}>
-      <Navigation />
       <main className={styles.main}>
         <h1>Welcome to University Routine Manager</h1>
         <p className={styles.subtitle}>

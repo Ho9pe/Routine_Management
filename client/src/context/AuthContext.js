@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
     const login = async (data) => {
         try {
             if (data.token && data.user) {
-                // If data is already from API response
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 document.cookie = `token=${data.token}; path=/`;
@@ -29,7 +28,6 @@ export function AuthProvider({ children }) {
                 return { success: true };
             }
     
-            // If raw credentials are provided
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -52,7 +50,7 @@ export function AuthProvider({ children }) {
             return { success: false, message: 'Connection error' };
         }
     };
-    
+
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

@@ -47,7 +47,6 @@ const studentSchema = new mongoose.Schema({
     },
     batch: {
         type: String,
-        required: true,
         match: [
             /^20\d{2}$/,
             'Batch must be a valid year (e.g., 2023)'

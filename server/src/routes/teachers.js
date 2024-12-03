@@ -46,14 +46,14 @@ router.put('/profile', auth, async (req, res) => {
     }
 });
 
-// Get assigned courses for a teacher
+// Update the course fetching route
 router.get('/courses', auth, async (req, res) => {
     try {
         const assignments = await TeacherCourseAssignment
             .find({ teacher_id: req.user.id })
             .populate({
                 path: 'course_id',
-                select: 'course_code course_name credit_hours course_type theory_hours practical_hours'
+                select: 'course_code course_name credit_hours contact_hours course_type' // Added contact_hours
             })
             .sort({ semester: 1 });
 
@@ -68,8 +68,7 @@ router.get('/courses', auth, async (req, res) => {
     }
 });
 
-// Assign a new course to teacher
-// Assign a new course to teacher
+// Update the course assignment route
 router.post('/courses/assign', auth, async (req, res) => {
     try {
         const { course_id, semester, academic_year, sections } = req.body;
@@ -87,7 +86,6 @@ router.post('/courses/assign', auth, async (req, res) => {
             });
         }
 
-        // If no existing assignment, create new one
         const assignment = new TeacherCourseAssignment({
             teacher_id: req.user.id,
             course_id,
@@ -103,7 +101,7 @@ router.post('/courses/assign', auth, async (req, res) => {
             .findById(assignment._id)
             .populate({
                 path: 'course_id',
-                select: 'course_code course_name credit_hours course_type theory_hours practical_hours'
+                select: 'course_code course_name credit_hours contact_hours course_type'
             });
 
         res.status(201).json(populatedAssignment);

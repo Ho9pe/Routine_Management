@@ -1,13 +1,22 @@
-// client/src/middleware.js
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
     const token = request.cookies.get('token');
     const { pathname } = request.nextUrl;
+    const userRole = request.cookies.get('user_role');
 
     // If user is logged in and tries to access login/register pages
     if (token && (pathname === '/login' || pathname === '/register')) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        switch(userRole?.value) {
+            case 'admin':
+                return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+            case 'teacher':
+                return NextResponse.redirect(new URL('/teacher/dashboard', request.url));
+            case 'student':
+                return NextResponse.redirect(new URL('/student/dashboard', request.url));
+            default:
+                return NextResponse.redirect(new URL('/', request.url));
+        }
     }
 
     // Public paths that don't require authentication
@@ -22,17 +31,13 @@ export function middleware(request) {
     }
 
     // Role-based route protection
-    const userRole = request.cookies.get('user_role');
-    
-    if (pathname.startsWith('/admin') && userRole !== 'admin') {
+    if (pathname.startsWith('/admin') && userRole?.value !== 'admin') {
         return NextResponse.redirect(new URL('/', request.url));
     }
-
-    if (pathname.startsWith('/teacher') && userRole !== 'teacher') {
+    if (pathname.startsWith('/teacher') && userRole?.value !== 'teacher') {
         return NextResponse.redirect(new URL('/', request.url));
     }
-
-    if (pathname.startsWith('/student') && userRole !== 'student') {
+    if (pathname.startsWith('/student') && userRole?.value !== 'student') {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
@@ -41,12 +46,11 @@ export function middleware(request) {
 
 export const config = {
     matcher: [
+        '/',
         '/login',
         '/register',
-        '/dashboard/:path*',
         '/admin/:path*',
         '/teacher/:path*',
         '/student/:path*',
-        '/courses/:path*'
     ]
 };

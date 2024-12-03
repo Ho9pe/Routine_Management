@@ -32,20 +32,18 @@ export default function CourseManagement() {
     }, [user]);
 
     const fetchStudentProfile = async () => {
-        if (user?.role === 'student') {
-            try {
-                const response = await fetch('/api/students/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    setStudentProfile(data);
+        try {
+            const response = await fetch('/api/students/profile', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            } catch (error) {
-                console.error('Error fetching student profile:', error);
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setStudentProfile(data);
             }
+        } catch (error) {
+            console.error('Error fetching student profile:', error);
         }
     };
 
@@ -116,12 +114,12 @@ export default function CourseManagement() {
             setShowAssignForm(false);
             return;
         }
-    
+
         // Find existing assignment for this course
         const existingAssignment = assignedCourses.find(assignment => 
             assignment.course_id._id === newAssignment.course_id
         );
-    
+
         // Check for duplicate sections
         if (existingAssignment) {
             const duplicateSections = newAssignment.sections.filter(section => 
@@ -148,9 +146,7 @@ export default function CourseManagement() {
                 })
             });
             const data = await response.json();
-            
             if (response.ok) {
-                // Refresh the course list to get the updated data
                 await fetchAssignedCourses();
                 setShowAssignForm(false);
                 setNewAssignment({
@@ -172,13 +168,12 @@ export default function CourseManagement() {
         const selectedCourse = availableCourses.find(
             course => course._id === e.target.value
         );
-        
         if (selectedCourse) {
             const semester = getSemesterFromCourseCode(selectedCourse.course_code);
             setNewAssignment({
                 ...newAssignment,
                 course_id: selectedCourse._id,
-                semester: semester // Automatically set the semester
+                semester: semester
             });
         }
     };
@@ -191,9 +186,7 @@ export default function CourseManagement() {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-    
             if (response.ok) {
-                // Remove course from state
                 setAssignedCourses(prev => 
                     prev.filter(course => course._id !== assignmentId)
                 );
@@ -210,6 +203,7 @@ export default function CourseManagement() {
     const handleRemoveClick = (assignmentId) => {
         setConfirmDelete(assignmentId);
     };
+
     const handleConfirmRemove = async () => {
         if (confirmDelete) {
             await handleRemoveCourse(confirmDelete);
@@ -217,27 +211,11 @@ export default function CourseManagement() {
         }
     };
 
-    const isDuplicateAssignment = (courseId, sections) => {
-        return assignedCourses.some(assignment => 
-            assignment.course_id._id === courseId &&
-            assignment.sections.some(existingSection => 
-                sections.includes(existingSection)
-            )
-        );
-    };
-
     const handleSectionChange = (section, isChecked) => {
         const updatedSections = isChecked
             ? [...newAssignment.sections, section]
             : newAssignment.sections.filter(s => s !== section);
-    
-        // Check for duplicates before updating state
-        if (isChecked && isDuplicateAssignment(newAssignment.course_id, [section])) {
-            setError(`Section ${section} is already assigned for this course`);
-            setShowAssignForm(false); // Close dialog on duplicate section error
-            return;
-        }
-    
+
         setNewAssignment({
             ...newAssignment,
             sections: updatedSections
@@ -251,12 +229,10 @@ export default function CourseManagement() {
             );
     
             if (existingCourse) {
-                // Merge sections and remove duplicates
                 existingCourse.sections = [...new Set([
                     ...existingCourse.sections,
                     ...curr.sections
                 ])].sort();
-                // Keep the most recent assignment ID
                 existingCourse._id = curr._id;
             } else {
                 acc.push({
@@ -270,7 +246,7 @@ export default function CourseManagement() {
 
     // Filter courses based on student's semester
     const filteredCourses = courses.filter(course => {
-        if (!studentProfile?.semester) return true; // Show all courses if no semester is set
+        if (!studentProfile?.semester) return true;
         return course.semester === studentProfile.semester;
     });
 
@@ -295,7 +271,7 @@ export default function CourseManagement() {
                     )
                 )}
             </div>
-    
+
             {error && (
                 <ErrorMessage 
                     message={error}
@@ -303,7 +279,6 @@ export default function CourseManagement() {
                     duration={5000}
                 />
             )}
-    
             {user?.role === 'teacher' ? (
                 // Teacher View
                 <div className={styles.courseGrid}>
@@ -331,24 +306,22 @@ export default function CourseManagement() {
                             </h3>
                             <div className={styles.courseDetails}>
                                 <div className={styles.detailItem}>
-                                    <span className={styles.label}>Semester:</span>
-                                    <span className={styles.value}>{semesterToYear(assignment.semester)}</span>
+                                    <span className={styles.label}>Credit Hours:</span>
+                                    <span className={styles.value}>
+                                        {assignment.course_id.credit_hours}
+                                    </span>
+                                </div>
+                                <div className={styles.detailItem}>
+                                    <span className={styles.label}>Contact Hours:</span>
+                                    <span className={styles.value}>
+                                        {assignment.course_id.contact_hours}
+                                    </span>
                                 </div>
                                 <div className={styles.detailItem}>
                                     <span className={styles.label}>Sections:</span>
-                                    <span className={styles.value}>{assignment.sections.join(', ')}</span>
-                                </div>
-                                <div className={styles.detailItem}>
-                                    <span className={styles.label}>Credit Hours:</span>
-                                    <span className={styles.value}>{assignment.course_id.credit_hours}</span>
-                                </div>
-                                <div className={styles.detailItem}>
-                                    <span className={styles.label}>Theory Hours:</span>
-                                    <span className={styles.value}>{assignment.course_id.theory_hours}</span>
-                                </div>
-                                <div className={styles.detailItem}>
-                                    <span className={styles.label}>Practical Hours:</span>
-                                    <span className={styles.value}>{assignment.course_id.practical_hours}</span>
+                                    <span className={styles.value}>
+                                        {assignment.sections.join(', ')}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -373,12 +346,8 @@ export default function CourseManagement() {
                                         <span className={styles.value}>{course.credit_hours}</span>
                                     </div>
                                     <div className={styles.detailItem}>
-                                        <span className={styles.label}>Theory Hours:</span>
-                                        <span className={styles.value}>{course.theory_hours}</span>
-                                    </div>
-                                    <div className={styles.detailItem}>
-                                        <span className={styles.label}>Practical Hours:</span>
-                                        <span className={styles.value}>{course.practical_hours}</span>
+                                        <span className={styles.label}>Contact Hours:</span>
+                                        <span className={styles.value}>{course.contact_hours}</span>
                                     </div>
                                 </div>
                             </div>
@@ -397,6 +366,7 @@ export default function CourseManagement() {
                     </div>
                 )
             )}
+
             {showAssignForm && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
@@ -470,6 +440,7 @@ export default function CourseManagement() {
                     </div>
                 </div>
             )}
+
             {confirmDelete && (
                 <div className={styles.confirmOverlay}>
                     <div className={styles.confirmDialog}>

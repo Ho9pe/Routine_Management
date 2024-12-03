@@ -38,15 +38,9 @@ const adminSchema = new mongoose.Schema({
         type: String,
         default: 'admin',
         enum: {
-            values: ['admin', 'super_admin'],
+            values: ['admin'],
             message: '{VALUE} is not a valid role'
         }
-    },
-    department: {
-        type: String,
-        required: [true, 'Department is required'],
-        trim: true,
-        uppercase: true
     },
     contact_info: {
         phone: {

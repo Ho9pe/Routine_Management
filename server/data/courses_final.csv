@@ -1,0 +1,99 @@
+Course Code,Course Name,Contact Hours,Credit Hours,Semester
+CSE-1100,Computer Fundamentals and Ethics,1.5,0.75,1
+CSE-1101,Structured Programming,3,3,1
+CSE-1102,Structured Programming Sessional,3,1.5,1
+EEE-1151,Basic Electrical Engineering,3,3,1
+EEE-1152,Basic Electrical Engineering Sessional,1.5,0.75,1
+MATH-1113,Differential and Integral Calculus,3,3,1
+HUM-1113,Functional English,3,3,1
+HUM-1114,Functional English Sessional,1.5,0.75,1
+CHEM-1113,Inorganic and Physical Chemistry,3,3,1
+CHEM-1114,Inorganic and Physical Chemistry Sessional,1.5,0.75,1
+CSE-1200,Competitive Programming Sessional,1.5,0.75,2
+CSE-1201,Data Structure,3,3,2
+CSE-1202,Data Structure Sessional,3,1.5,2
+CSE-1203,Object Oriented Programming,3,3,2
+CSE-1204,Object Oriented Programming Sessional,3,1.5,2
+EEE-1251,Electronic Drives and Circuits,3,3,2
+EEE-1252,Electronic Drives and Circuits Sessional,3,1.5,2
+MATH-1213,Co-ordinate Geometry and Ordinary Differential Equation,3,3,2
+PHY-1213,Physics,3,3,2
+PHY-1214,Physics Sessional,1.5,0.75,2
+CSE-2100,Software Development Project I,1.5,0.75,3
+CSE-2101,Discrete Mathematics,3,3,3
+CSE-2102,Discrete Mathematics Sessional,3,1.5,3
+CSE-2103,Digital Logic Design,3,3,3
+CSE-2104,Digital Logic Design Sessional,3,1.5,3
+EEE-2151,Electrical Drives and Instrumentation,3,3,3
+EEE-2152,Electrical Drives and Instrumentation Sessional,1.5,0.75,3
+MATH-2113,Vector Analysis and Linear Algebra,3,3,3
+HUM-2113,"Economics, Government and Sociology",3,3,3
+CSE-2200,Technical Writing and Presentation Sessional,1.5,0.75,4
+CSE-2201,Algorithm Analysis and Design,3,3,4
+CSE-2202,Algorithm Analysis and Design Sessional,3,1.5,4
+CSE-2203,Numerical Methods,3,3,4
+CSE-2204,Numerical Methods Sessional,1.5,0.75,4
+CSE-2205,"Microprocessors, Microcontrollers and Assembly Language",3,3,4
+CSE-2206,"Microprocessors, Microcontrollers and Assembly Language Sessional",3,1.5,4
+MATH-2213,"Complex Variable, Partial Differential Equation and Harmonic Analysis",3,3,4
+HUM-2213,Industrial Management and Accountancy,3,3,4
+CSE-3100,Web Based Application Project,1.5,0.75,5
+CSE-3101,Database Systems,3,3,5
+CSE-3102,Database Systems Sessional,3,1.5,5
+CSE-3103,Theory of Computation,3,3,5
+CSE-3105,Computer Interfacing and Embedded System,3,3,5
+CSE-3106,Computer Interfacing and Embedded System Sessional,1.5,0.75,5
+CSE-3107,Computer Architecture,3,3,5
+CSE-3108,Computer Architecture Sessional,1.5,0.75,5
+CSE-3109,Applied Statistics and Queuing Theory,3,3,5
+CSE-3200,Software Development Project II,1.5,0.75,6
+CSE-3201,Operating Systems,3,3,6
+CSE-3202,Operating System Sessional,1.5,0.75,6
+CSE-3203,Data Communication,3,3,6
+CSE-3204,Data Communication Sessional,1.5,0.75,6
+CSE-3205,Software Engineering,3,3,6
+CSE-3206,Software Engineering Sessional,1.5,0.75,6
+CSE-3207,Artificial Intelligence,3,3,6
+CSE-3208,Artificial Intelligence Sessional,1.5,0.75,6
+CSE-3209,Digital Signal Processing,3,3,6
+CSE-3210,Digital Signal Processing Sessional,1.5,0.75,6
+CSE-4100,Project/Thesis I,2,1,7
+CSE-4101,Compiler Design,3,3,7
+CSE-4102,Compiler Design Sessional,1.5,0.75,7
+CSE-4103,Computer Networks,3,3,7
+CSE-4104,Computer Networks Sessional,3,1.5,7
+CSE-4105,Digital Image Processing,3,3,7
+CSE-4106,Digital Image Processing Sessional,1.5,0.75,7
+CSE-4108,Industrial Attachment,1.5,0.75,7
+CSE-4109,Information Systems Analysis and Design,3,3,7
+CSE-4110,Information Systems Analysis and Design Sessional,1.5,0.75,7
+CSE-4111,Unix Programming,3,3,7
+CSE-4112,Unix Programming Sessional,1.5,0.75,7
+CSE-4113,Digital System Design,3,3,7
+CSE-4114,Digital System Design Sessional,1.5,0.75,7
+CSE-4115,Simulation and Modeling,3,3,7
+CSE-4116,Simulation and Modeling Sessional,1.5,0.75,7
+CSE-4117,Wireless Networks,3,3,7
+CSE-4118,Wireless Networks Sessional,1.5,0.75,7
+CSE-4119,Data Mining,3,3,7
+CSE-4120,Data Mining Sessional,1.5,0.75,7
+CSE-4121,Computer Vision,3,3,7
+CSE-4122,Computer Vision Sessional,1.5,0.75,7
+CSE-4123,Knowledge Engineering,3,3,7
+CSE-4124,Knowledge Engineering Sessional,1.5,0.75,7
+CSE-4200,Project/ Thesis II,6,3,8
+CSE-4201,Computer Graphics,3,3,8
+CSE-4202,Computer Graphics Sessional,1.5,0.75,8
+CSE-4203,Machine Learning,3,3,8
+CSE-4204,Machine Learning Sessional,1.5,0.75,8
+CSE-4205,Security and Privacy,3,3,8
+CSE-4206,Security and Privacy Sessional,1.5,0.75,8
+CSE-4208,Seminar,1.5,0.75,8
+CSE-4209,VLSI Design,3,3,8
+CSE-4211,Parallel and Distributed Processing,3,3,8
+CSE-4213,Impact of Computer on Society,3,3,8
+CSE-4215,Decision Support System,3,3,8
+CSE-4217,Network Planning,3,3,8
+CSE-4219,Human Computer Interaction,3,3,8
+CSE-4221,Switching Systems,3,3,8
+CSE-4223,Control System Engineering,3,3,8

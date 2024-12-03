@@ -11,7 +11,7 @@ export default function LoginForm() {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
-        role: '' // Added role field
+        role: ''
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -54,7 +54,7 @@ export default function LoginForm() {
                 }
                 const loginResult = await login(data);
                 if (loginResult.success) {
-                    router.push('/dashboard');
+                    router.push(`/${formData.role}/dashboard`);
                 } else {
                     setError(loginResult.message);
                 }

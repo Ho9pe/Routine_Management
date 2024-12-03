@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const Admin = require('../models/Admin');
+const Admin = require('../src/models/Admin');
 
 async function createDefaultAdmin() {
     let connection;
@@ -17,19 +17,19 @@ async function createDefaultAdmin() {
         
         if (adminExists) {
             console.log('Admin already exists');
-            return;
+            console.log('\nRemoving existing admin...');
+            await Admin.deleteOne({ email: 'admin@ruet.ac.bd' });
         }
 
         const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(process.env.DEFAULT_ADMIN_PASSWORD || 'admin123', salt);
+        const hashedPassword = await bcrypt.hash(process.env.DEFAULT_ADMIN_PASSWORD, salt);
 
         const admin = new Admin({
             admin_id: 'ADM001',
             email: 'admin@ruet.ac.bd',
             password: hashedPassword,
             name: 'System Administrator',
-            role: 'super_admin',
-            department: 'CSE',
+            role: 'admin',
             contact_info: {
                 phone: '1234567890',
                 office: 'Admin Building, Room 101'
@@ -42,8 +42,6 @@ async function createDefaultAdmin() {
         console.log('Admin ID:', admin.admin_id);
         console.log('Email:', admin.email);
         console.log('Role:', admin.role);
-        console.log('Department:', admin.department);
-
     } catch (error) {
         console.error('Error creating admin:', error);
         process.exit(1);
