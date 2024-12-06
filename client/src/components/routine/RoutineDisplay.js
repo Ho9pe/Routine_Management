@@ -4,48 +4,111 @@ import { useAuth } from '@/context/AuthContext';
 import { TIME_SLOTS, WORKING_DAYS } from '../../../../server/src/constants/timeSlots';
 import styles from './RoutineDisplay.module.css';
 import ErrorMessage from '../common/ErrorMessage';
+import { semesterOptions } from '@/lib/semesterMapping';
 
 export default function RoutineDisplay({ selectedSection: initialSection, selectedSemester }) {
-    const { user } = useAuth();
+    const { user, updateUserData } = useAuth();
     const [schedule, setSchedule] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedSection, setSelectedSection] = useState(initialSection);
+    const [studentInfo, setStudentInfo] = useState(null);
+    const [isUpdatingSemester, setIsUpdatingSemester] = useState(false);
+    const [newSemester, setNewSemester] = useState('');
+    const [success, setSuccess] = useState('');
+    const [fetchKey, setFetchKey] = useState(0);
 
+    // Fetch student info only once when component mounts
     useEffect(() => {
         if (user?.role === 'student') {
-            // Determine student's section from roll number
-            const rollLastThree = parseInt(user.student_roll.slice(-3));
-            if (rollLastThree <= 60) setSelectedSection('A');
-            else if (rollLastThree <= 120) setSelectedSection('B');
-            else setSelectedSection('C');
+            fetchStudentInfo();
         }
-        fetchSchedule();
-    }, [selectedSection, selectedSemester, user]);
+    }, []);
+
+    // Fetch schedule when dependencies change
+    useEffect(() => {
+        if (user?.role === 'teacher' || studentInfo || selectedSemester) {
+            fetchSchedule();
+        }
+    }, [studentInfo?.semester, selectedSemester, fetchKey, user?.role]);
+
+    const fetchStudentInfo = async () => {
+        try {
+            const response = await fetch('/api/students/profile', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setStudentInfo(data);
+                updateUserData({ semester: data.semester });
+                const rollLastThree = parseInt(data.student_roll.slice(-3));
+                if (rollLastThree <= 60) setSelectedSection('A');
+                else if (rollLastThree <= 120) setSelectedSection('B');
+                else setSelectedSection('C');
+            }
+        } catch (error) {
+            console.error('Error fetching student info:', error);
+            setError('Failed to fetch student info');
+        }
+    };
+
+    const handleUpdateSemester = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/students/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    semester: parseInt(newSemester)
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setStudentInfo(prev => ({
+                    ...prev,
+                    semester: parseInt(newSemester)
+                }));
+                updateUserData({ semester: parseInt(newSemester) });
+                setSuccess('Semester updated successfully');
+                setIsUpdatingSemester(false);
+                setNewSemester('');
+                
+                // Force a re-fetch by incrementing the key
+                setFetchKey(prev => prev + 1);
+                
+                // Clear success message after 3 seconds
+                setTimeout(() => setSuccess(''), 3000);
+            } else {
+                setError(data.message || 'Failed to update semester');
+            }
+        } catch (error) {
+            setError('Failed to update semester');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchSchedule = async () => {
         try {
-            let url = '/api/schedule/';
-            if (user?.role === 'admin') {
-                if (!selectedSection || !selectedSemester) return;
-                url += `admin/routine?section=${selectedSection}&semester=${selectedSemester}`;
-            } else if (user?.role === 'student') {
-                url += 'student/routine';
-            } else {
-                url += 'teacher/routine';
-            }
-
-            // Debug logging
-            console.log('Fetching schedule with:', {
-                url,
-                user: {
-                    role: user?.role,
-                    id: user?.id,
-                    student_roll: user?.student_roll,
-                    semester: user?.semester
-                },
-                token: localStorage.getItem('token')?.substring(0, 20) + '...' // Show first 20 chars of token
+            setLoading(true);
+            console.log('Fetching schedule with params:', {
+                semester: studentInfo?.semester || selectedSemester,
+                section: selectedSection,
+                role: user?.role
             });
+
+            let url = '/api/schedule/student/routine';
+            if (user?.role === 'teacher') {
+                url = '/api/schedule/teacher/routine';
+            } else if (selectedSection && selectedSemester) {
+                url = `/api/schedule/admin/routine?semester=${selectedSemester}&section=${selectedSection}`;
+            }
 
             const response = await fetch(url, {
                 headers: {
@@ -54,12 +117,11 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
             });
             
             const data = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to fetch schedule');
             }
 
-            console.log('Schedule data received:', data);
+            console.log('Received schedule data:', data);
             setSchedule(data);
             setError('');
         } catch (error) {
@@ -71,10 +133,21 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
     };
 
     const getClassForSlot = (timeSlot, day) => {
-        return schedule.find(s => 
+        const classSession = schedule.find(s => 
             s.time_slot === timeSlot && 
             s.day_of_week === day
         );
+        
+        if (classSession) {
+            console.log('Found class session:', {
+                timeSlot,
+                day,
+                course: classSession.course_id.course_code,
+                section: classSession.section
+            });
+        }
+        
+        return classSession;
     };
 
     const renderHeaderCells = () => {
@@ -116,50 +189,40 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
         let cells = [];
         
         TIME_SLOTS.forEach(slot => {
-            if (slot.id === '3' || slot.id === '6') {
-                const classSession = getClassForSlot(slot.id, day);
-                cells.push(
-                    <td key={`cell-${day}-${slot.id}`} className={styles.scheduleCell}>
-                        {classSession && (
-                            <div className={`${styles.classBlock} ${styles[classSession.course_id.course_type]}`}>
-                                <div className={styles.courseCode}>
-                                    {classSession.course_id.course_code}
-                                </div>
-                                <div className={styles.courseDetails}>
-                                    <div className={styles.courseName}>
-                                        {classSession.course_id.course_name}
-                                    </div>
-                                    <div className={styles.teacherName}>
+            const classSession = getClassForSlot(slot.id, day);
+            
+            const cellContent = classSession ? (
+                <div className={`${styles.classBlock} ${styles[classSession.course_id.course_type]}`}>
+                    <div className={styles.courseCode}>
+                        {classSession.course_id.course_code}
+                    </div>
+                    <div className={styles.courseDetails}>
+                        <div className={styles.courseName}>
+                            {classSession.course_id.course_name}
+                        </div>
+                        {(user?.role === 'teacher' || user?.role === 'admin') && classSession.section && (
+                            <div className={styles.sectionInfo}>
+                                {user?.role === 'admin' && classSession.teacher_id && (
+                                    <div className={styles.teacherInfo}>
                                         {classSession.teacher_id.full_name}
                                     </div>
-                                </div>
+                                )}
+                                <div>Section: {classSession.section}</div>
                             </div>
                         )}
-                    </td>
-                );
+                    </div>
+                </div>
+            ) : null;
+
+            cells.push(
+                <td key={`cell-${day}-${slot.id}`} className={styles.scheduleCell}>
+                    {cellContent}
+                </td>
+            );
+
+            if (slot.id === '3' || slot.id === '6') {
                 cells.push(
                     <td key={`break-${day}-${slot.id}`} className={styles.breakCell}></td>
-                );
-            } else {
-                const classSession = getClassForSlot(slot.id, day);
-                cells.push(
-                    <td key={`cell-${day}-${slot.id}`} className={styles.scheduleCell}>
-                        {classSession && (
-                            <div className={`${styles.classBlock} ${styles[classSession.course_id.course_type]}`}>
-                                <div className={styles.courseCode}>
-                                    {classSession.course_id.course_code}
-                                </div>
-                                <div className={styles.courseDetails}>
-                                    <div className={styles.courseName}>
-                                        {classSession.course_id.course_name}
-                                    </div>
-                                    <div className={styles.teacherName}>
-                                        {classSession.teacher_id.full_name}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </td>
                 );
             }
         });
@@ -178,6 +241,67 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                     message={error}
                     onDismiss={() => setError('')}
                 />
+            )}
+
+            {success && (
+                <div className={styles.successMessage}>
+                    {success}
+                </div>
+            )}
+
+            {user?.role === 'student' && studentInfo && (
+                <div className={styles.studentInfo}>
+                    <div className={styles.semesterInfo}>
+                        {isUpdatingSemester ? (
+                            <div className={styles.semesterUpdate}>
+                                <select
+                                    value={newSemester}
+                                    onChange={(e) => setNewSemester(e.target.value)}
+                                    className={styles.semesterSelect}
+                                >
+                                    <option value="">Select Semester</option>
+                                    {semesterOptions.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className={styles.updateButtons}>
+                                    <button 
+                                        onClick={handleUpdateSemester}
+                                        className={styles.updateButton}
+                                        disabled={!newSemester}
+                                    >
+                                        Update
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setIsUpdatingSemester(false);
+                                            setNewSemester('');
+                                        }}
+                                        className={styles.cancelButton}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={styles.currentSemester}>
+                                <p>Current Semester: {studentInfo.semester}</p>
+                                <button 
+                                    onClick={() => {
+                                        setIsUpdatingSemester(true);
+                                        setNewSemester(studentInfo.semester.toString());
+                                    }}
+                                    className={styles.editButton}
+                                >
+                                    Change Semester
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <p>Section: {selectedSection}</p>
+                </div>
             )}
 
             <div className={styles.tableWrapper}>

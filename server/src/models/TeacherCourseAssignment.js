@@ -32,13 +32,20 @@ const teacherCourseAssignmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Prevent duplicate assignments
+// Remove the old index if it exists
+if (teacherCourseAssignmentSchema.indexes()) {
+    teacherCourseAssignmentSchema.indexes().forEach(index => {
+        teacherCourseAssignmentSchema.index(index[0], { unique: false });
+    });
+}
+
+// Add a new compound index that includes sections
 teacherCourseAssignmentSchema.index(
     {
         teacher_id: 1,
         course_id: 1,
-        'sections': 1,
-        academic_year: 1
+        academic_year: 1,
+        'sections': 1
     },
     {
         unique: true,

@@ -225,6 +225,137 @@
     font-size: 1.1rem;
 }
 
+.studentInfo {
+    background-color: #2d2d2d;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.studentInfo p {
+    margin: 0;
+    color: #60a5fa;
+    font-weight: 500;
+}
+
+.semesterInfo {
+    flex: 1;
+}
+
+.currentSemester {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.currentSemester p {
+    margin: 0;
+    color: #60a5fa;
+    font-weight: 500;
+}
+
+.semesterUpdate {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.semesterSelect {
+    padding: 0.5rem;
+    border-radius: 6px;
+    background-color: #1a1a1a;
+    border: 1px solid #3d3d3d;
+    color: #e0e0e0;
+    min-width: 200px;
+}
+
+.updateButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.updateButton,
+.cancelButton,
+.editButton {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.updateButton {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.updateButton:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.updateButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cancelButton {
+    background-color: #ef4444;
+    color: white;
+}
+
+.cancelButton:hover {
+    background-color: #dc2626;
+}
+
+.editButton {
+    background-color: #4b5563;
+    color: white;
+}
+
+.editButton:hover {
+    background-color: #374151;
+}
+
+.successMessage {
+    background-color: rgba(16, 185, 129, 0.1);
+    border: 1px solid #10b981;
+    color: #34d399;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    text-align: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.teacherInfo {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+    color: #ef4444;
+}
+
+.sectionInfo {
+    color: #666;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
     .routineContainer {

@@ -14,6 +14,7 @@ export default function AdminRoutineManager() {
     const [showRoutine, setShowRoutine] = useState(false);
     const [showSkippedCourses, setShowSkippedCourses] = useState(false);
     const [routineStatus, setRoutineStatus] = useState(null);
+    const [key, setKey] = useState(0);
     
 
     useEffect(() => {
@@ -26,6 +27,12 @@ export default function AdminRoutineManager() {
             setShowRoutine(true);
         }
     }, [routineStatus]);
+
+    useEffect(() => {
+        if (selectedSection && selectedSemester) {
+            setKey(prevKey => prevKey + 1);
+        }
+    }, [selectedSection, selectedSemester]);
 
     const fetchRoutineStatus = async () => {
         try {
@@ -68,6 +75,7 @@ export default function AdminRoutineManager() {
     
                 setSuccess('Routine generated successfully!');
                 fetchRoutineStatus(); // Refresh status after generation
+                setKey(prevKey => prevKey + 1);
             } else {
                 setError(data.message || 'Failed to generate routine');
             }
@@ -203,6 +211,7 @@ export default function AdminRoutineManager() {
                         </div>
                     ) : (
                         <RoutineDisplay 
+                            key={key}
                             selectedSection={selectedSection}
                             selectedSemester={selectedSemester}
                         />

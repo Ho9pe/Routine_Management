@@ -4,7 +4,7 @@ import AuthLayout from '@/components/common/AuthLayout';
 export default function StudentRoutinePage() {
     return (
         <AuthLayout>
-            <RoutineDisplay />
+            <RoutineDisplay key={Date.now()} />
         </AuthLayout>
     );
 }

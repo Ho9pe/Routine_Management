@@ -60,6 +60,8 @@ router.get('/student/routine', auth, roleCheck(['student']), async (req, res) =>
         })
         .sort({ day_of_week: 1, time_slot: 1 });
 
+        console.log(`Found ${schedule.length} classes for student`);
+
         res.json(schedule);
     } catch (error) {
         console.error('Error fetching student routine:', error);
@@ -73,13 +75,30 @@ router.get('/student/routine', auth, roleCheck(['student']), async (req, res) =>
 // Get teacher routine
 router.get('/teacher/routine', auth, roleCheck(['teacher']), async (req, res) => {
     try {
+        const currentYear = new Date().getFullYear().toString();
+        
         const schedule = await ClassSchedule.find({
             teacher_id: req.user.id,
-            academic_year: new Date().getFullYear().toString(),
+            academic_year: currentYear,
             is_active: true
         })
-        .populate('course_id')
+        .populate({
+            path: 'course_id',
+            select: 'course_code course_name credit_hours contact_hours course_type'
+        })
+        .populate({
+            path: 'teacher_id',
+            select: 'full_name academic_rank'
+        })
         .sort({ day_of_week: 1, time_slot: 1 });
+
+        console.log('Teacher schedule data:', schedule.map(item => ({
+            course: item.course_id.course_code,
+            section: item.section,
+            day: item.day_of_week,
+            timeSlot: item.time_slot
+        })));
+        
         res.json(schedule);
     } catch (error) {
         console.error('Error fetching teacher routine:', error);
@@ -150,7 +169,7 @@ router.get('/admin/routine', auth, roleCheck(['admin']), async (req, res) => {
         })
         .sort({ day_of_week: 1, time_slot: 1 });
 
-        console.log(`Found ${schedule.length} schedule entries`);
+        console.log(`Found ${schedule.length} schedule entries for section ${section}`);
 
         res.json(schedule);
     } catch (error) {
@@ -168,7 +187,7 @@ router.post('/admin/generate', auth, roleCheck(['admin']), async (req, res) => {
     try {
         const currentYear = new Date().getFullYear().toString();
         
-        console.log('Starting routine generation...');
+        console.log('Starting routine generation process');
 
         // Create new session
         session = await RoutineSession.create({
@@ -177,96 +196,79 @@ router.post('/admin/generate', auth, roleCheck(['admin']), async (req, res) => {
             status: 'processing'
         });
 
-        console.log('Created session:', session._id);
-
         // Clear existing routine
         await ClassSchedule.deleteMany({
             academic_year: currentYear
         });
 
-        console.log('Cleared existing routine');
-
-        // Get course assignments
+        // Fetch and validate course assignments
         const courseAssignments = await TeacherCourseAssignment
             .find({ academic_year: currentYear })
             .populate('course_id')
             .populate('teacher_id');
 
-        console.log(`Found ${courseAssignments.length} course assignments`);
+        console.log('Fetched course assignments:', {
+            count: courseAssignments.length,
+            sampleAssignment: courseAssignments[0] ? {
+                courseCode: courseAssignments[0].course_id?.course_code,
+                teacherName: courseAssignments[0].teacher_id?.full_name,
+                sections: courseAssignments[0].sections
+            } : null
+        });
 
         if (!courseAssignments.length) {
-            session.status = 'failed';
-            session.error_log.push('No course assignments found');
-            await session.save();
-            return res.status(400).json({ message: 'No course assignments found' });
+            throw new Error('No course assignments found');
         }
 
-        // Get preferences
+        // Fetch preferences
         const preferences = await TeacherPreference.find({
             academic_year: currentYear,
             is_active: true
         });
 
-        console.log(`Found ${preferences.length} teacher preferences`);
+        console.log('Fetched preferences:', {
+            count: preferences.length
+        });
 
-        // Generate routine
+        // Initialize generator
         const generator = new RoutineGenerator(courseAssignments, preferences);
+        
+        // Generate routine
         const result = await generator.generateRoutine();
 
-        console.log('Generation result:', result);
-
-        // Sanitize conflicts before saving
-        const sanitizedConflicts = result.conflicts.map(conflict => ({
-            type: conflict.type,
-            description: conflict.description,
-            course_id: conflict.course_id,
-            teacher_id: conflict.teacher_id,
-            semester: conflict.semester,
-            section: conflict.section,
-            day: conflict.day,
-            time_slot: conflict.time_slot
-        }));
-
         // Update session
-        session.status = result.success ? 'completed' : 'failed';
+        session.status = 'completed';
         session.end_time = new Date();
-        session.conflicts = sanitizedConflicts;
-        
-        if (result.success) {
-            session.success_log.push(`Generated ${result.scheduledCourses} courses`);
-        }
+        session.conflicts = result.conflicts;
         if (result.skippedCourses?.length) {
             session.error_log.push(`Skipped ${result.skippedCourses.length} courses`);
         }
-        
         await session.save();
 
         res.json({
-            message: result.success ? 'Routine generated successfully' : 'Routine generation failed',
-            success: result.success,
+            success: true,
             scheduledCourses: result.scheduledCourses,
             skippedCourses: result.skippedCourses,
-            conflicts: sanitizedConflicts,
+            conflicts: result.conflicts,
             sessionId: session._id
         });
+
     } catch (error) {
-        console.error('Routine generation error:', error);
+        console.error('Routine generation error:', {
+            message: error.message,
+            stack: error.stack
+        });
         
-        // Update session with error if it exists
         if (session) {
-            try {
-                session.status = 'failed';
-                session.error_log.push(error.message);
-                await session.save();
-            } catch (sessionError) {
-                console.error('Error updating session:', sessionError);
-            }
+            session.status = 'failed';
+            session.error_log.push(error.message);
+            await session.save();
         }
 
         res.status(500).json({ 
+            success: false,
             message: 'Failed to generate routine',
-            error: error.message,
-            details: error.errors ? Object.values(error.errors).map(e => e.message) : undefined
+            error: error.message
         });
     }
 });

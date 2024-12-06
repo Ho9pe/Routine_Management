@@ -32,7 +32,8 @@ const routineSessionSchema = new mongoose.Schema({
                 'preference', 
                 'daily_limit', 
                 'course_repeat',
-                'scheduling'  // Added this missing type
+                'parallel_section',  // Added this
+                'scheduling'
             ]
         },
         description: String,

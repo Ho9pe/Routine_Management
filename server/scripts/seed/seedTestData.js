@@ -4,23 +4,20 @@ const TeacherPreference = require('../../src/models/TeacherPreference');
 const Teacher = require('../../src/models/Teacher');
 const Course = require('../../src/models/Course');
 const { TIME_SLOTS, WORKING_DAYS } = require('../../src/constants/timeSlots');
-const { PREFERENCE_LEVELS } = require('../../src/constants/preferences');
 require('dotenv').config();
 
 async function seedTestData() {
     let connection;
     try {
-        // Validate environment variables
-        if (!process.env.MONGODB_LOCAL_URL) {
-            throw new Error('MONGODB_LOCAL_URL environment variable is not defined');
-        }
-
-        // Connect to MongoDB with timeout
+        // Connect to MongoDB
         connection = await mongoose.connect(process.env.MONGODB_LOCAL_URL, {
             serverSelectionTimeoutMS: 5000,
             connectTimeoutMS: 10000
         });
         console.log('Connected to MongoDB');
+
+        // Define current year at the top
+        const currentYear = new Date().getFullYear().toString();
 
         // Fetch existing teachers and courses
         const teachers = await Teacher.find();
@@ -38,10 +35,9 @@ async function seedTestData() {
         await TeacherCourseAssignment.deleteMany({});
         console.log('Cleared existing test data');
 
-        // Create course assignments with balanced distribution
+        // Initialize tracking maps
         const assignments = [];
-        const teacherLoadMap = new Map(); // Track teacher loads
-        const possibleSections = ['A', 'B', 'C'];
+        const teacherLoadMap = new Map();
 
         // Initialize teacher load map
         teachers.forEach(teacher => {
@@ -54,29 +50,30 @@ async function seedTestData() {
 
         // Sort courses by semester and credit hours
         const sortedCourses = [...courses].sort((a, b) => {
-            if (a.semester !== b.semester) {
-                return a.semester - b.semester;
-            }
+            if (a.semester !== b.semester) return a.semester - b.semester;
             return b.credit_hours - a.credit_hours;
         });
 
-        // Assign courses to teachers based on rank and load
-        for (const course of sortedCourses) {
-            // For each course, we need to create assignments for all sections
-            const sections = ['A', 'B', 'C']; // All sections should get the same course
-            
-            // Sort teachers by rank and current load
-            const availableTeachers = [...teachers]
+        // Helper function to get available teachers
+        const getAvailableTeachers = (excludeTeacher = null) => {
+            return [...teachers]
+                .filter(teacher => {
+                    if (excludeTeacher && teacher._id.toString() === excludeTeacher.toString()) {
+                        return false;
+                    }
+                    const load = teacherLoadMap.get(teacher._id.toString());
+                    return load.totalHours < 20; // Maximum 20 hours per teacher
+                })
                 .sort((a, b) => {
                     const loadA = teacherLoadMap.get(a._id.toString());
                     const loadB = teacherLoadMap.get(b._id.toString());
                     
-                    // First priority: Current load (changed from academic rank)
+                    // Sort by current load first
                     if (loadA.totalHours !== loadB.totalHours) {
-                        return loadA.totalHours - loadB.totalHours; // Lower load gets priority
+                        return loadA.totalHours - loadB.totalHours;
                     }
-        
-                    // Second priority: Academic rank (as tiebreaker)
+                    
+                    // Then by academic rank
                     const rankPriority = {
                         'Professor': 4,
                         'Associate Professor': 3,
@@ -85,70 +82,106 @@ async function seedTestData() {
                     };
                     return rankPriority[b.academic_rank] - rankPriority[a.academic_rank];
                 });
-        
-            // Select teacher with lowest load
-            const selectedTeacher = availableTeachers[0];
-            const teacherLoad = teacherLoadMap.get(selectedTeacher._id.toString());
-        
-            // Create assignment for all sections if theory course
+        };
+
+        // Helper function to update teacher load
+        const updateTeacherLoad = (teacherId, contactHours, sectionCount = 1) => {
+            const load = teacherLoadMap.get(teacherId.toString());
+            load.totalHours += contactHours * sectionCount;
+            load.courseCount += 1;
+            teacherLoadMap.set(teacherId.toString(), load);
+        };
+
+        // Process each course
+        for (const course of sortedCourses) {
+            const sections = ['A', 'B', 'C'];
+
             if (course.course_type === 'theory') {
-                assignments.push({
-                    teacher_id: selectedTeacher._id,
-                    course_id: course._id,
-                    semester: course.semester,
-                    academic_year: new Date().getFullYear().toString(),
-                    sections: sections // All sections get the same theory course
-                });
-        
-                // Update teacher load
-                teacherLoad.totalHours += course.contact_hours * sections.length;
-                teacherLoad.courseCount += 1;
+                const distribution = Math.random();
+
+                if (distribution < 0.3) { // 30% chance: one teacher all sections
+                    const teacher = getAvailableTeachers()[0];
+                    if (teacher) {
+                        assignments.push({
+                            teacher_id: teacher._id,
+                            course_id: course._id,
+                            semester: course.semester,
+                            academic_year: currentYear,
+                            sections: sections
+                        });
+                        updateTeacherLoad(teacher._id, course.contact_hours, sections.length);
+                    }
+                } 
+                else if (distribution < 0.6) { // 30% chance: two teachers (2+1 sections)
+                    const teacher1 = getAvailableTeachers()[0];
+                    if (teacher1) {
+                        assignments.push({
+                            teacher_id: teacher1._id,
+                            course_id: course._id,
+                            semester: course.semester,
+                            academic_year: currentYear,
+                            sections: sections.slice(0, 2)
+                        });
+                        updateTeacherLoad(teacher1._id, course.contact_hours, 2);
+
+                        const teacher2 = getAvailableTeachers(teacher1._id)[0];
+                        if (teacher2) {
+                            assignments.push({
+                                teacher_id: teacher2._id,
+                                course_id: course._id,
+                                semester: course.semester,
+                                academic_year: currentYear,
+                                sections: [sections[2]]
+                            });
+                            updateTeacherLoad(teacher2._id, course.contact_hours, 1);
+                        }
+                    }
+                }
+                else { // 40% chance: different teachers for each section
+                    for (const section of sections) {
+                        const teacher = getAvailableTeachers()[0];
+                        if (teacher) {
+                            assignments.push({
+                                teacher_id: teacher._id,
+                                course_id: course._id,
+                                semester: course.semester,
+                                academic_year: currentYear,
+                                sections: [section]
+                            });
+                            updateTeacherLoad(teacher._id, course.contact_hours, 1);
+                        }
+                    }
+                }
             } 
-            // For lab/sessional courses, create separate assignments for each section
-            else {
-                sections.forEach(section => {
-                    // Find teacher with lowest load for each section
-                    const sectionTeacher = [...teachers]
-                        .sort((a, b) => {
-                            const loadA = teacherLoadMap.get(a._id.toString()).totalHours;
-                            const loadB = teacherLoadMap.get(b._id.toString()).totalHours;
-                            return loadA - loadB;
-                        })[0];
-        
-                    assignments.push({
-                        teacher_id: sectionTeacher._id,
-                        course_id: course._id,
-                        semester: course.semester,
-                        academic_year: new Date().getFullYear().toString(),
-                        sections: [section]
-                    });
-        
-                    // Update teacher load
-                    const sectionTeacherLoad = teacherLoadMap.get(sectionTeacher._id.toString());
-                    sectionTeacherLoad.totalHours += course.contact_hours;
-                    sectionTeacherLoad.courseCount += 1;
-                    teacherLoadMap.set(sectionTeacher._id.toString(), sectionTeacherLoad);
-                });
+            else { // Lab/Sessional courses: always different teachers
+                for (const section of sections) {
+                    const teacher = getAvailableTeachers()[0];
+                    if (teacher) {
+                        assignments.push({
+                            teacher_id: teacher._id,
+                            course_id: course._id,
+                            semester: course.semester,
+                            academic_year: currentYear,
+                            sections: [section]
+                        });
+                        updateTeacherLoad(teacher._id, course.contact_hours, 1);
+                    }
+                }
             }
-        
-            teacherLoadMap.set(selectedTeacher._id.toString(), teacherLoad);
         }
 
-        // Create preferences with intelligent distribution
+        // Generate teacher preferences
         const preferences = [];
         const usedSlots = new Set();
 
         for (const teacher of teachers) {
             const teacherLoad = teacherLoadMap.get(teacher._id.toString());
             const numPreferences = Math.min(
-                Math.ceil(teacherLoad.totalHours / 2), // One preference per 2 hours of teaching
-                WORKING_DAYS.length * 2 // Maximum 2 preferences per day
+                Math.ceil(teacherLoad.totalHours / 2),
+                WORKING_DAYS.length * 2
             );
 
-            let attempts = 0;
-            const teacherPreferences = [];
-
-            while (teacherPreferences.length < numPreferences && attempts < 30) {
+            for (let i = 0; i < numPreferences; i++) {
                 const day = WORKING_DAYS[Math.floor(Math.random() * WORKING_DAYS.length)];
                 const timeSlot = TIME_SLOTS[Math.floor(Math.random() * TIME_SLOTS.length)];
                 const slotKey = `${teacher._id}-${day}-${timeSlot.id}`;
@@ -156,47 +189,62 @@ async function seedTestData() {
                 if (!usedSlots.has(slotKey)) {
                     usedSlots.add(slotKey);
 
-                    // Determine preference level based on academic rank and time slot
                     let preferenceLevel;
                     const slotNumber = parseInt(timeSlot.id);
                     
                     if (teacher.academic_rank === 'Professor' || 
                         teacher.academic_rank === 'Associate Professor') {
-                        // Senior faculty prefer morning slots
                         preferenceLevel = slotNumber <= 3 ? 'HIGH' : 
                                         slotNumber <= 6 ? 'MEDIUM' : 'LOW';
                     } else {
-                        // Junior faculty get more varied preferences
                         preferenceLevel = ['HIGH', 'MEDIUM', 'LOW'][Math.floor(Math.random() * 3)];
                     }
 
-                    // Occasionally mark slots as unavailable
-                    if (Math.random() < 0.1) { // 10% chance
+                    if (Math.random() < 0.1) {
                         preferenceLevel = 'UNAVAILABLE';
                     }
 
-                    teacherPreferences.push({
+                    preferences.push({
                         teacher_id: teacher._id,
                         day_of_week: day,
                         preferred_time_slot: timeSlot.id,
                         preference_level: preferenceLevel,
-                        academic_year: new Date().getFullYear().toString(),
+                        academic_year: currentYear,
                         is_active: true
                     });
                 }
-                attempts++;
             }
-            preferences.push(...teacherPreferences);
         }
 
-        // Insert course assignments and preferences
+        // Save to database
         const createdAssignments = await TeacherCourseAssignment.insertMany(assignments);
         const createdPreferences = await TeacherPreference.insertMany(preferences);
 
         // Print statistics
         console.log('\nAssignment Statistics:');
         console.log(`Total Assignments Created: ${createdAssignments.length}`);
-        
+
+        const courseStats = {};
+        createdAssignments.forEach(assignment => {
+            const courseCode = assignment.course_id.course_code;
+            if (!courseStats[courseCode]) {
+                courseStats[courseCode] = {
+                    teachers: new Set(),
+                    sections: new Set(),
+                    type: assignment.course_id.course_type
+                };
+            }
+            courseStats[courseCode].teachers.add(assignment.teacher_id.full_name);
+            assignment.sections.forEach(s => courseStats[courseCode].sections.add(s));
+        });
+
+        console.log('\nCourse Distribution:');
+        Object.entries(courseStats).forEach(([courseCode, stats]) => {
+            console.log(`${courseCode} (${stats.type}):`);
+            console.log(`  Teachers: ${Array.from(stats.teachers).join(', ')}`);
+            console.log(`  Sections: ${Array.from(stats.sections).join(', ')}`);
+        });
+
         console.log('\nTeacher Load Distribution:');
         for (const [teacherId, load] of teacherLoadMap) {
             const teacher = teachers.find(t => t._id.toString() === teacherId);
@@ -216,18 +264,6 @@ async function seedTestData() {
             console.log(`${level}: ${count} preferences`);
         });
 
-        console.log('\nSection Distribution:');
-        const sectionStats = assignments.reduce((acc, assignment) => {
-            assignment.sections.forEach(section => {
-                acc[section] = (acc[section] || 0) + 1;
-            });
-            return acc;
-        }, {});
-
-        Object.entries(sectionStats).forEach(([section, count]) => {
-            console.log(`Section ${section}: ${count} courses`);
-        });
-
     } catch (error) {
         console.error('Error seeding test data:', error);
         process.exit(1);
@@ -239,13 +275,12 @@ async function seedTestData() {
     }
 }
 
-// Handle uncaught exceptions
+// Error handlers
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
     process.exit(1);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (error) => {
     console.error('Unhandled Rejection:', error);
     process.exit(1);

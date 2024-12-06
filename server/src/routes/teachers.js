@@ -73,38 +73,64 @@ router.post('/courses/assign', auth, async (req, res) => {
     try {
         const { course_id, semester, academic_year, sections } = req.body;
         
-        // Check if any section of this course is already assigned
-        const existingAssignment = await TeacherCourseAssignment.findOne({
+        // Find existing assignment for this course
+        let existingAssignment = await TeacherCourseAssignment.findOne({
             teacher_id: req.user.id,
             course_id: course_id,
-            sections: { $in: sections }
+            academic_year: academic_year || new Date().getFullYear().toString()
         });
 
         if (existingAssignment) {
-            return res.status(400).json({ 
-                message: 'You have already been assigned to this course for one or more of these sections' 
+            // Check for section conflicts
+            const newSections = sections.filter(section => 
+                !existingAssignment.sections.includes(section)
+            );
+
+            if (newSections.length === 0) {
+                return res.status(400).json({ 
+                    message: 'All selected sections are already assigned to you for this course'
+                });
+            }
+
+            // Add new sections to existing assignment
+            existingAssignment.sections = [
+                ...existingAssignment.sections,
+                ...newSections
+            ];
+
+            await existingAssignment.save();
+            
+            // Populate the course details before sending response
+            const populatedAssignment = await TeacherCourseAssignment
+                .findById(existingAssignment._id)
+                .populate({
+                    path: 'course_id',
+                    select: 'course_code course_name credit_hours contact_hours course_type'
+                });
+
+            res.json(populatedAssignment);
+        } else {
+            // Create new assignment
+            const assignment = new TeacherCourseAssignment({
+                teacher_id: req.user.id,
+                course_id,
+                semester,
+                academic_year: academic_year || new Date().getFullYear().toString(),
+                sections
             });
+
+            await assignment.save();
+            
+            // Populate the course details before sending response
+            const populatedAssignment = await TeacherCourseAssignment
+                .findById(assignment._id)
+                .populate({
+                    path: 'course_id',
+                    select: 'course_code course_name credit_hours contact_hours course_type'
+                });
+
+            res.status(201).json(populatedAssignment);
         }
-
-        const assignment = new TeacherCourseAssignment({
-            teacher_id: req.user.id,
-            course_id,
-            semester,
-            academic_year,
-            sections
-        });
-
-        await assignment.save();
-        
-        // Populate the course details before sending response
-        const populatedAssignment = await TeacherCourseAssignment
-            .findById(assignment._id)
-            .populate({
-                path: 'course_id',
-                select: 'course_code course_name credit_hours contact_hours course_type'
-            });
-
-        res.status(201).json(populatedAssignment);
     } catch (error) {
         console.error('Error assigning course:', error);
         res.status(500).json({ message: error.message });
