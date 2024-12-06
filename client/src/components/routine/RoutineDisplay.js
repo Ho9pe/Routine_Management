@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { TIME_SLOTS, WORKING_DAYS } from '../../../../server/src/constants/timeSlots';
 import styles from './RoutineDisplay.module.css';
 import ErrorMessage from '../common/ErrorMessage';
-import { semesterOptions } from '@/lib/semesterMapping';
+import { semesterOptions, semesterToYear } from '@/lib/semesterMapping';
 
 export default function RoutineDisplay({ selectedSection: initialSection, selectedSemester }) {
     const { user, updateUserData } = useAuth();
@@ -16,7 +16,6 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
     const [isUpdatingSemester, setIsUpdatingSemester] = useState(false);
     const [newSemester, setNewSemester] = useState('');
     const [success, setSuccess] = useState('');
-    const [fetchKey, setFetchKey] = useState(0);
 
     // Fetch student info only once when component mounts
     useEffect(() => {
@@ -27,12 +26,18 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
 
     // Fetch schedule when dependencies change
     useEffect(() => {
-        if ((user?.role === 'student' && studentInfo?.semester) || 
-            user?.role === 'teacher' || 
-            (selectedSection && selectedSemester)) {
-            fetchSchedule();
-        }
-    }, [studentInfo?.semester, selectedSemester, selectedSection, user?.role, fetchKey]);
+        const fetchData = async () => {
+            if (user?.role === 'student' && studentInfo?.semester) {
+                await fetchSchedule();
+            } else if (user?.role === 'teacher') {
+                await fetchSchedule();
+            } else if (selectedSection && selectedSemester) {
+                await fetchSchedule();
+            }
+        };
+    
+        fetchData();
+    }, [studentInfo?.semester, selectedSemester, selectedSection, user?.role]);
 
     const fetchStudentInfo = async () => {
         try {
@@ -81,11 +86,8 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 setIsUpdatingSemester(false);
                 setNewSemester('');
                 
-                // Force immediate re-fetch
-                setFetchKey(prev => prev + 1);
                 await fetchSchedule();
                 
-                // Clear success message after 3 seconds
                 setTimeout(() => setSuccess(''), 3000);
             } else {
                 setError(data.message || 'Failed to update semester');
@@ -113,14 +115,15 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 url = `/api/schedule/admin/routine?semester=${selectedSemester}&section=${selectedSection}`;
             }
     
-            // Add cache-busting parameter
-            url += `${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
-    
             const response = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Cache-Control': 'no-cache'
-                }
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                },
+                // Force fetch new data
+                cache: 'no-store'
             });
             
             const data = await response.json();
@@ -128,7 +131,6 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 throw new Error(data.message || 'Failed to fetch schedule');
             }
     
-            console.log('Received schedule data:', data);
             setSchedule(data);
             setError('');
         } catch (error) {
@@ -294,7 +296,7 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                             </div>
                         ) : (
                             <div className={styles.currentSemester}>
-                                <p>Current Semester: {studentInfo.semester}</p>
+                                <p>Current Semester: {semesterToYear(studentInfo.semester)}</p>
                                 <button 
                                     onClick={() => {
                                         setIsUpdatingSemester(true);

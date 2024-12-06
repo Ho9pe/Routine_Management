@@ -12,25 +12,15 @@ const Student = require('../models/Student');
 // Get student routine
 router.get('/student/routine', auth, roleCheck(['student']), async (req, res) => {
     try {
-        // Debug logging
-        console.log('Student routine request:', {
-            userId: req.user.id,
-            userRole: req.user.role,
-            email: req.user.email
-        });
-
-        // First, fetch the student's data if not in token
-        if (!req.user.student_roll || !req.user.semester) {
-            const student = await Student.findOne({ email: req.user.email });
-            if (!student) {
-                return res.status(404).json({ message: 'Student not found' });
-            }
-            req.user.student_roll = student.student_roll;
-            req.user.semester = student.semester;
+        // Always fetch fresh student data
+        const student = await Student.findOne({ email: req.user.email });
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
         }
 
-        // Now proceed with the routine fetch
-        const rollLastThree = parseInt(req.user.student_roll.slice(-3));
+        // Use the fresh student data
+        const semester = student.semester;
+        const rollLastThree = parseInt(student.student_roll.slice(-3));
         let section;
         if (rollLastThree <= 60) section = 'A';
         else if (rollLastThree <= 120) section = 'B';
@@ -38,14 +28,8 @@ router.get('/student/routine', auth, roleCheck(['student']), async (req, res) =>
 
         const currentYear = new Date().getFullYear().toString();
 
-        console.log('Fetching schedule with params:', {
-            semester: req.user.semester,
-            section,
-            academic_year: currentYear
-        });
-
         const schedule = await ClassSchedule.find({
-            semester: req.user.semester,
+            semester: semester,
             section: section,
             academic_year: currentYear,
             is_active: true
@@ -60,13 +44,11 @@ router.get('/student/routine', auth, roleCheck(['student']), async (req, res) =>
         })
         .sort({ day_of_week: 1, time_slot: 1 });
 
-        console.log(`Found ${schedule.length} classes for student`);
-
         res.json(schedule);
     } catch (error) {
-        console.error('Error fetching student routine:', error);
+        console.error('Error fetching routine:', error);
         res.status(500).json({ 
-            message: 'Failed to fetch schedule',
+            message: 'Failed to fetch routine',
             error: error.message 
         });
     }
