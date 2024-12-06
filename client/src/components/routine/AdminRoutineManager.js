@@ -211,7 +211,7 @@ export default function AdminRoutineManager() {
                         </div>
                     ) : (
                         <RoutineDisplay 
-                            key={key}
+                            key={`${selectedSection}-${selectedSemester}-${key}`}
                             selectedSection={selectedSection}
                             selectedSemester={selectedSemester}
                         />

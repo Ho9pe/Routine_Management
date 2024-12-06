@@ -27,10 +27,12 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
 
     // Fetch schedule when dependencies change
     useEffect(() => {
-        if (user?.role === 'teacher' || studentInfo || selectedSemester) {
+        if ((user?.role === 'student' && studentInfo?.semester) || 
+            user?.role === 'teacher' || 
+            (selectedSection && selectedSemester)) {
             fetchSchedule();
         }
-    }, [studentInfo?.semester, selectedSemester, fetchKey, user?.role]);
+    }, [studentInfo?.semester, selectedSemester, selectedSection, user?.role, fetchKey]);
 
     const fetchStudentInfo = async () => {
         try {
@@ -67,7 +69,7 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                     semester: parseInt(newSemester)
                 })
             });
-
+    
             const data = await response.json();
             if (response.ok) {
                 setStudentInfo(prev => ({
@@ -79,8 +81,9 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 setIsUpdatingSemester(false);
                 setNewSemester('');
                 
-                // Force a re-fetch by incrementing the key
+                // Force immediate re-fetch
                 setFetchKey(prev => prev + 1);
+                await fetchSchedule();
                 
                 // Clear success message after 3 seconds
                 setTimeout(() => setSuccess(''), 3000);
@@ -102,17 +105,21 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 section: selectedSection,
                 role: user?.role
             });
-
+    
             let url = '/api/schedule/student/routine';
             if (user?.role === 'teacher') {
                 url = '/api/schedule/teacher/routine';
             } else if (selectedSection && selectedSemester) {
                 url = `/api/schedule/admin/routine?semester=${selectedSemester}&section=${selectedSection}`;
             }
-
+    
+            // Add cache-busting parameter
+            url += `${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+    
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Cache-Control': 'no-cache'
                 }
             });
             
@@ -120,7 +127,7 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to fetch schedule');
             }
-
+    
             console.log('Received schedule data:', data);
             setSchedule(data);
             setError('');
