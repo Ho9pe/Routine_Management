@@ -23,36 +23,37 @@ const teacherPreferenceSchema = new mongoose.Schema({
         },
         required: [true, 'Preferred time slot is required']
     },
-    course_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Course',
-        required: [true, 'Course ID is required']
-    },
     preference_level: {
-        type: Number,
-        min: [1, 'Preference level must be between 1 and 5'],
-        max: [5, 'Preference level must be between 1 and 5'],
-        default: 3
+        type: String,
+        enum: {
+            values: ['HIGH', 'MEDIUM', 'LOW', 'UNAVAILABLE'],
+            message: '{VALUE} is not a valid preference level'
+        },
+        default: 'LOW'
     },
-    created_at: {
-        type: Date,
-        default: Date.now
+    academic_year: {
+        type: String,
+        required: [true, 'Academic year is required'],
+        match: [/^20\d{2}$/, 'Academic year must be a valid year']
     },
-    updated_at: {
-        type: Date,
-        default: Date.now
+    is_active: {
+        type: Boolean,
+        default: true
     }
+}, {
+    timestamps: true
 });
 
-// Compound index to prevent duplicate preferences
+// Prevent duplicate preferences
 teacherPreferenceSchema.index(
-    { teacher_id: 1, day_of_week: 1, preferred_time_slot: 1 },
+    { 
+        teacher_id: 1, 
+        day_of_week: 1, 
+        preferred_time_slot: 1,
+        academic_year: 1,
+        is_active: 1
+    },
     { unique: true }
 );
-
-teacherPreferenceSchema.pre('save', function(next) {
-    this.updated_at = new Date();
-    next();
-});
 
 module.exports = mongoose.model('TeacherPreference', teacherPreferenceSchema);

@@ -29,56 +29,53 @@ const classScheduleSchema = new mongoose.Schema({
         required: [true, 'Time slot is required']
     },
     semester: {
-        type: String,
+        type: Number,
         required: [true, 'Semester is required'],
-        match: [
-            /^[1-8]$/,
-            'Semester must be between 1 and 8'
-        ]
+        min: [1, 'Semester must be between 1 and 8'],
+        max: [8, 'Semester must be between 1 and 8']
     },
     section: {
         type: String,
         required: [true, 'Section is required'],
         uppercase: true,
-        match: [
-            /^[A-C]$/,
-            'Section must be A, B, or C'
-        ]
+        match: [/^[A-C]$/, 'Section must be A, B, or C']
     },
-    created_at: {
-        type: Date,
-        default: Date.now
+    academic_year: {
+        type: String,
+        required: [true, 'Academic year is required'],
+        match: [/^20\d{2}$/, 'Academic year must be a valid year']
     },
-    updated_at: {
-        type: Date,
-        default: Date.now
+    is_active: {
+        type: Boolean,
+        default: true
     }
+}, {
+    timestamps: true
 });
 
-// Compound index to prevent scheduling conflicts
-classScheduleSchema.index(
-    { 
-        day_of_week: 1, 
-        time_slot: 1, 
-        semester: 1,
-        section: 1
-    }, 
-    { unique: true }
-);
-
-// Compound index to prevent teacher double-booking
+// Index to prevent teacher double-booking
 classScheduleSchema.index(
     {
         teacher_id: 1,
         day_of_week: 1,
-        time_slot: 1
+        time_slot: 1,
+        academic_year: 1,
+        is_active: 1
     },
     { unique: true }
 );
 
-classScheduleSchema.pre('save', function(next) {
-    this.updated_at = new Date();
-    next();
-});
+// Index to prevent section double-booking
+classScheduleSchema.index(
+    {
+        semester: 1,
+        section: 1,
+        day_of_week: 1,
+        time_slot: 1,
+        academic_year: 1,
+        is_active: 1
+    },
+    { unique: true }
+);
 
 module.exports = mongoose.model('ClassSchedule', classScheduleSchema);

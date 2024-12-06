@@ -50,28 +50,16 @@ const teacherSchema = new mongoose.Schema({
             trim: true,
             match: [
                 /^[0-9]{10,}$/,
-                'Please enter a valid phone number, 10 digits required'
+                'Please enter a valid phone number'
             ]
         },
         office: {
             type: String,
             trim: true
         }
-    },
-    created_at: {
-        type: Date,
-        default: Date.now,
-    },
-    updated_at: {
-        type: Date,
-        default: Date.now
     }
-});
-
-// Update the updated_at timestamp before saving
-teacherSchema.pre('save', function(next) {
-    this.updated_at = new Date();
-    next();
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Teacher', teacherSchema);

@@ -58,20 +58,9 @@ const adminSchema = new mongoose.Schema({
     },
     last_login: {
         type: Date
-    },
-    created_at: {
-        type: Date,
-        default: Date.now
-    },
-    updated_at: {
-        type: Date,
-        default: Date.now
     }
-});
-
-adminSchema.pre('save', function(next) {
-    this.updated_at = new Date();
-    next();
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Admin', adminSchema);

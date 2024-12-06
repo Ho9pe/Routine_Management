@@ -115,7 +115,11 @@ const login = async (req, res) => {
             { 
                 id: user._id,
                 role,
-                email: role === 'teacher' ? user.contact_info.email : user.email
+                email: role === 'teacher' ? user.contact_info.email : user.email,
+                ...(role === 'student' && {
+                    student_roll: user.student_roll,
+                    semester: user.semester
+                })
             },
             process.env.JWT_SECRET,
             { expiresIn: '1d' }

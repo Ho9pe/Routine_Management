@@ -6,10 +6,19 @@ const Student = require('../models/Student');
 // Get student profile
 router.get('/profile', auth, async (req, res) => {
     try {
+        console.log('Fetching student profile for:', req.user); // Debug log
+
         const student = await Student.findOne({ email: req.user.email }).select('-password');
         if (!student) {
             return res.status(404).json({ message: 'Student not found' });
         }
+
+        // Update the user's token data with the latest student info
+        req.user.student_roll = student.student_roll;
+        req.user.semester = student.semester;
+
+        console.log('Found student:', student); // Debug log
+
         res.json(student);
     } catch (error) {
         console.error('Error fetching student profile:', error);

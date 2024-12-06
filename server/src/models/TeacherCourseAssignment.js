@@ -20,7 +20,7 @@ const teacherCourseAssignmentSchema = new mongoose.Schema({
     academic_year: {
         type: String,
         required: [true, 'Academic year is required'],
-        match: [/^20\d{2}$/, 'Academic year must be a valid year (e.g., 2024)']
+        match: [/^20\d{2}$/, 'Academic year must be a valid year']
     },
     sections: [{
         type: String,
@@ -32,15 +32,13 @@ const teacherCourseAssignmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Add this line to ensure virtual populate works
-teacherCourseAssignmentSchema.set('toJSON', { virtuals: true });
-teacherCourseAssignmentSchema.set('toObject', { virtuals: true });
-
+// Prevent duplicate assignments
 teacherCourseAssignmentSchema.index(
     {
         teacher_id: 1,
         course_id: 1,
-        'sections': 1
+        'sections': 1,
+        academic_year: 1
     },
     {
         unique: true,

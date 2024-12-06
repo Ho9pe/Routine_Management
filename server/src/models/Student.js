@@ -51,20 +51,9 @@ const studentSchema = new mongoose.Schema({
             /^20\d{2}$/,
             'Batch must be a valid year (e.g., 2023)'
         ]
-    },
-    created_at: {
-        type: Date,
-        default: Date.now
-    },
-    updated_at: {
-        type: Date,
-        default: Date.now
     }
-});
-
-studentSchema.pre('save', function(next) {
-    this.updated_at = new Date();
-    next();
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Student', studentSchema);

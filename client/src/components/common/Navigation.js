@@ -19,13 +19,13 @@ export default function Navigation() {
             <Link href="/admin/panel" className={isActive('/admin/panel') ? styles.active : ''}>
                 Admin Panel
             </Link>
+            <Link href="/admin/routine" className={isActive('/admin/routine') ? styles.active : ''}>
+                Routine
+            </Link>
             <Link href="/admin/dashboard" className={isActive('/admin/dashboard') ? styles.active : ''}>
                 Dashboard
             </Link>
-            <button 
-                onClick={handleLogout}
-                className={styles.logoutButton}
-            >
+            <button onClick={handleLogout} className={styles.logoutButton}>
                 Logout
             </button>
         </div>
@@ -36,13 +36,13 @@ export default function Navigation() {
             <Link href="/teacher/courses" className={isActive('/teacher/courses') ? styles.active : ''}>
                 My Courses
             </Link>
+            <Link href="/teacher/routine" className={isActive('/teacher/routine') ? styles.active : ''}>
+                My Routine
+            </Link>
             <Link href="/teacher/dashboard" className={isActive('/teacher/dashboard') ? styles.active : ''}>
                 Dashboard
             </Link>
-            <button 
-                onClick={handleLogout}
-                className={styles.logoutButton}
-            >
+            <button onClick={handleLogout} className={styles.logoutButton}>
                 Logout
             </button>
         </div>
@@ -53,13 +53,13 @@ export default function Navigation() {
             <Link href="/student/courses" className={isActive('/student/courses') ? styles.active : ''}>
                 My Courses
             </Link>
+            <Link href="/student/routine" className={isActive('/student/routine') ? styles.active : ''}>
+                My Routine
+            </Link>
             <Link href="/student/dashboard" className={isActive('/student/dashboard') ? styles.active : ''}>
                 Dashboard
             </Link>
-            <button 
-                onClick={handleLogout}
-                className={styles.logoutButton}
-            >
+            <button onClick={handleLogout} className={styles.logoutButton}>
                 Logout
             </button>
         </div>

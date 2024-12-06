@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('@fast-csv/parse');
-const Teacher = require('../../models/Teacher');
+const Teacher = require('../../src/models/Teacher');
 
 async function validateTeacherData(data) {
     const errors = [];

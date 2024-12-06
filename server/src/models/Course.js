@@ -59,20 +59,18 @@ const courseSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Compound index for efficient querying
+// Compound indexes for efficient querying
 courseSchema.index({ department: 1, semester: 1, course_type: 1 });
 courseSchema.index({ course_code: 1, department: 1 }, { unique: true });
 
-// Update the course type determination logic
+// Course type determination logic
 courseSchema.pre('save', function(next) {
-    // Extract the last 4 digits from course code
     const codeNumber = this.course_code.split('-')[1];
     const lastDigit = parseInt(codeNumber[3]);
     const isEven = lastDigit % 2 === 0;
     const endsWithZero = lastDigit === 0;
     const nameIncludes = (str) => this.course_name.toLowerCase().includes(str.toLowerCase());
 
-    // Determine course type based on the rules
     if (endsWithZero) {
         if (nameIncludes('thesis')) {
             this.course_type = 'thesis';
