@@ -161,7 +161,7 @@ export default function AdminPanel() {
                     <SortableHeader label="Roll No" sortKey="student_roll" />
                     <SortableHeader label="Name" sortKey="full_name" />
                     <SortableHeader label="Department" sortKey="department" />
-                    <SortableHeader label="Year" sortKey="semester" />
+                    <SortableHeader label="Semester" sortKey="semester" />
                     <SortableHeader label="Email" sortKey="email" />
                     <th>Actions</th>
                 </tr>
@@ -172,7 +172,11 @@ export default function AdminPanel() {
                         <td>{student.student_roll}</td>
                         <td>{student.full_name}</td>
                         <td>{student.department}</td>
-                        <td>{semesterToYear(student.semester)}</td>
+                        <td>
+                            <span className={styles.semesterBadge}>
+                                {semesterToYear(student.semester)}
+                            </span>
+                        </td>
                         <td>{student.email}</td>
                         <td>
                             <button 

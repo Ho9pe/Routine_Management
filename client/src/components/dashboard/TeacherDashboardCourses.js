@@ -25,7 +25,7 @@ export default function TeacherDashboardCourses() {
             }
             
             const data = await response.json();
-            setAssignedCourses(data);
+            setAssignedCourses(data.assignments || []);
         } catch (error) {
             console.error('Error fetching courses:', error);
             setError('Failed to fetch assigned courses');
@@ -34,8 +34,35 @@ export default function TeacherDashboardCourses() {
         }
     };
 
+    const groupAssignmentsByCourse = (assignments) => {
+        if (!Array.isArray(assignments)) {
+            return [];
+        }
+
+        return assignments.reduce((acc, curr) => {
+            const existingCourse = acc.find(item => 
+                item.course_id._id === curr.course_id._id
+            );
+    
+            if (existingCourse) {
+                existingCourse.sections = [...new Set([
+                    ...existingCourse.sections,
+                    ...curr.sections
+                ])].sort();
+            } else {
+                acc.push({
+                    ...curr,
+                    sections: [...curr.sections]
+                });
+            }
+            return acc;
+        }, []);
+    };
+
     if (loading) return <div className={styles.loading}>Loading...</div>;
     if (error) return <div className={styles.error}>{error}</div>;
+
+    const groupedAssignments = groupAssignmentsByCourse(assignedCourses);
 
     return (
         <div className={styles.dashboardCourses}>
@@ -43,7 +70,7 @@ export default function TeacherDashboardCourses() {
                 <div>
                     <h3>Assigned Courses</h3>
                     <p className={styles.courseCount}>
-                        Total Courses: {assignedCourses.length}
+                        Total Courses: {groupedAssignments.length}
                     </p>
                 </div>
                 <Link href="/teacher/courses" className={styles.viewAllButton}>
@@ -52,18 +79,27 @@ export default function TeacherDashboardCourses() {
             </div>
 
             <div className={styles.courseList}>
-                {assignedCourses.length > 0 ? (
-                    assignedCourses.map(assignment => (
+                {groupedAssignments.length > 0 ? (
+                    groupedAssignments.map(assignment => (
                         <div key={assignment._id} className={styles.courseItem}>
                             <div className={styles.courseCode}>
                                 {assignment.course_id?.course_code || 'N/A'}
                             </div>
                             <div className={styles.courseDetails}>
-                                <p>{assignment.course_id?.course_name || 'N/A'}</p>
-                                <p>Credit Hours: {assignment.course_id?.credit_hours}</p>
-                                <p>Contact Hours: {assignment.course_id?.contact_hours}</p>
-                                <p>Type: {assignment.course_id?.course_type}</p>
-                                <p>Sections: {assignment.sections.join(', ')}</p>
+                                <p className={styles.courseName}>
+                                    {assignment.course_id?.course_name || 'N/A'}
+                                </p>
+                                <div className={styles.courseInfo}>
+                                    <p>Credit Hours: {assignment.course_id?.credit_hours}</p>
+                                    <p>Contact Hours: {assignment.course_id?.contact_hours}</p>
+                                    <p>Type: <span className={`${styles.courseType} ${styles[assignment.course_id?.course_type]}`}>
+                                        {assignment.course_id?.course_type}
+                                    </span></p>
+                                    <p>Sections: {assignment.sections.join(', ')}</p>
+                                </div>
+                                <div className={styles.departmentBadge}>
+                                    {assignment.course_id?.department}
+                                </div>
                             </div>
                         </div>
                     ))

@@ -45,7 +45,7 @@ teacherCourseAssignmentSchema.index(
         teacher_id: 1,
         course_id: 1,
         academic_year: 1,
-        'sections': 1
+        sections: 1
     },
     {
         unique: true,

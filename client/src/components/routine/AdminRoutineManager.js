@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import RoutineDisplay from './RoutineDisplay';
 import styles from './AdminRoutineManager.module.css';
 import ErrorMessage from '../common/ErrorMessage';
+import { semesterToYear } from '@/lib/semesterMapping';
 
 export default function AdminRoutineManager() {
     const [generating, setGenerating] = useState(false);
@@ -209,7 +210,9 @@ export default function AdminRoutineManager() {
 
             {showRoutine && (
                 <div className={styles.viewSection}>
-                    <h3>View Routine</h3>
+                    <div className={styles.viewHeader}>
+                        <h3>View Routine</h3>
+                    </div>
                     <div className={styles.filters}>
                         <div className={styles.filterGroup}>
                             <label>Section:</label>
@@ -233,7 +236,9 @@ export default function AdminRoutineManager() {
                             >
                                 <option value="">Select Semester</option>
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
-                                    <option key={sem} value={sem}>Semester {sem}</option>
+                                    <option key={sem} value={sem}>
+                                        {semesterToYear(sem)}
+                                    </option>
                                 ))}
                             </select>
                         </div>

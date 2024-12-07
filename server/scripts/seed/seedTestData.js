@@ -14,7 +14,7 @@ async function seedTestData() {
             serverSelectionTimeoutMS: 5000,
             connectTimeoutMS: 10000
         });
-        console.log('Connected to MongoDB');
+        console.log('\n=== Starting Test Data Seeding ===');
 
         // Define current year at the top
         const currentYear = new Date().getFullYear().toString();
@@ -24,16 +24,36 @@ async function seedTestData() {
         if (teachers.length === 0) {
             throw new Error('No teachers found in database');
         }
+        console.log(`Found ${teachers.length} teachers`);
 
         const courses = await Course.find();
         if (courses.length === 0) {
             throw new Error('No courses found in database');
         }
+        console.log(`Found ${courses.length} courses`);
 
         // Clear existing test data
         await TeacherPreference.deleteMany({});
         await TeacherCourseAssignment.deleteMany({});
         console.log('Cleared existing test data');
+
+        // Group by department (add logging)
+        const coursesByDept = courses.reduce((acc, course) => {
+            acc[course.department] = (acc[course.department] || []).concat(course);
+            return acc;
+        }, {});
+
+        const teachersByDept = teachers.reduce((acc, teacher) => {
+            acc[teacher.department] = (acc[teacher.department] || []).concat(teacher);
+            return acc;
+        }, {});
+
+        console.log('\n=== Department Distribution ===');
+        Object.keys(coursesByDept).forEach(dept => {
+            console.log(`${dept}:`);
+            console.log(`  Courses: ${coursesByDept[dept].length}`);
+            console.log(`  Teachers: ${(teachersByDept[dept] || []).length}`);
+        });
 
         // Initialize tracking maps
         const assignments = [];
@@ -48,21 +68,67 @@ async function seedTestData() {
             });
         });
 
-        // Sort courses by semester and credit hours
-        const sortedCourses = [...courses].sort((a, b) => {
-            if (a.semester !== b.semester) return a.semester - b.semester;
-            return b.credit_hours - a.credit_hours;
-        });
+        // Group courses by department
+        const coursesByDepartment = courses.reduce((acc, course) => {
+            if (!acc[course.department]) {
+                acc[course.department] = [];
+            }
+            acc[course.department].push(course);
+            return acc;
+        }, {});
+
+        // Group teachers by department
+        const teachersByDepartment = teachers.reduce((acc, teacher) => {
+            if (!acc[teacher.department]) {
+                acc[teacher.department] = [];
+            }
+            acc[teacher.department].push(teacher);
+            return acc;
+        }, {});
+
+        // Validate department coverage
+        for (const dept in coursesByDepartment) {
+            if (!teachersByDepartment[dept] || teachersByDepartment[dept].length === 0) {
+                console.warn(`Warning: No teachers found for ${dept} department`);
+            }
+        }
+
+        // Helper function to check if teacher is already assigned to specific sections
+        const getTeacherExistingSections = (assignments, teacherId, courseId) => {
+            const existingAssignments = assignments.filter(assignment => 
+                assignment.teacher_id.toString() === teacherId.toString() &&
+                assignment.course_id.toString() === courseId.toString()
+            );
+            
+            return existingAssignments.reduce((sections, assignment) => 
+                [...sections, ...assignment.sections], []);
+        };
 
         // Helper function to get available teachers
-        const getAvailableTeachers = (excludeTeacher = null) => {
+        const getAvailableTeachers = (excludeTeacher = null, courseId = null, sections = []) => {
             return [...teachers]
                 .filter(teacher => {
+                    // Exclude specific teacher if provided
                     if (excludeTeacher && teacher._id.toString() === excludeTeacher.toString()) {
                         return false;
                     }
+                    
+                    // Check teaching load
                     const load = teacherLoadMap.get(teacher._id.toString());
-                    return load.totalHours < 20; // Maximum 20 hours per teacher
+                    if (load.totalHours >= 20) {
+                        return false;
+                    }
+
+                    // If courseId and sections provided, check for section conflicts
+                    if (courseId && sections.length > 0) {
+                        const existingSections = getTeacherExistingSections(assignments, teacher._id, courseId);
+                        const hasConflict = sections.some(section => existingSections.includes(section));
+                        if (hasConflict) {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 })
                 .sort((a, b) => {
                     const loadA = teacherLoadMap.get(a._id.toString());
@@ -92,79 +158,113 @@ async function seedTestData() {
             teacherLoadMap.set(teacherId.toString(), load);
         };
 
-        // Process each course
-        for (const course of sortedCourses) {
-            const sections = ['A', 'B', 'C'];
+        // Replace the existing course processing loop with this:
+        for (const department in coursesByDepartment) {
+            const departmentCourses = coursesByDepartment[department];
+            const departmentTeachers = teachersByDepartment[department] || [];
 
-            if (course.course_type === 'theory') {
+            if (departmentTeachers.length === 0) {
+                console.warn(`Skipping ${department} courses - no teachers available`);
+                continue;
+            }
+
+            // Sort courses by semester and credit hours
+            const sortedCourses = [...departmentCourses].sort((a, b) => {
+                if (a.semester !== b.semester) return a.semester - b.semester;
+                return b.credit_hours - a.credit_hours;
+            });
+
+            for (const course of sortedCourses) {
+                const sections = ['A', 'B', 'C'];
                 const distribution = Math.random();
 
-                if (distribution < 0.3) { // 30% chance: one teacher all sections
-                    const teacher = getAvailableTeachers()[0];
-                    if (teacher) {
-                        assignments.push({
-                            teacher_id: teacher._id,
-                            course_id: course._id,
-                            semester: course.semester,
-                            academic_year: currentYear,
-                            sections: sections
-                        });
-                        updateTeacherLoad(teacher._id, course.contact_hours, sections.length);
-                    }
-                } 
-                else if (distribution < 0.6) { // 30% chance: two teachers (2+1 sections)
-                    const teacher1 = getAvailableTeachers()[0];
-                    if (teacher1) {
-                        assignments.push({
-                            teacher_id: teacher1._id,
-                            course_id: course._id,
-                            semester: course.semester,
-                            academic_year: currentYear,
-                            sections: sections.slice(0, 2)
-                        });
-                        updateTeacherLoad(teacher1._id, course.contact_hours, 2);
+                console.log(`\nProcessing ${course.course_code} (${department})`);
 
-                        const teacher2 = getAvailableTeachers(teacher1._id)[0];
-                        if (teacher2) {
+                if (course.course_type === 'theory') {
+                    if (distribution < 0.3) { // 30% chance: one teacher all sections
+                        const availableTeacher = getAvailableTeachers(null, course._id, sections)
+                            .find(t => t.department === department);
+
+                        if (availableTeacher) {
                             assignments.push({
-                                teacher_id: teacher2._id,
+                                teacher_id: availableTeacher._id,
                                 course_id: course._id,
                                 semester: course.semester,
                                 academic_year: currentYear,
-                                sections: [sections[2]]
+                                sections: sections
                             });
-                            updateTeacherLoad(teacher2._id, course.contact_hours, 1);
+                            updateTeacherLoad(availableTeacher._id, course.contact_hours, sections.length);
+                            console.log(`Assigned all sections to ${availableTeacher.full_name}`);
+                        }
+                    } 
+                    else if (distribution < 0.6) { // 30% chance: two teachers (2+1 sections)
+                        const firstSections = sections.slice(0, 2);
+                        const teacher1 = getAvailableTeachers(null, course._id, firstSections)
+                            .find(t => t.department === department);
+
+                        if (teacher1) {
+                            assignments.push({
+                                teacher_id: teacher1._id,
+                                course_id: course._id,
+                                semester: course.semester,
+                                academic_year: currentYear,
+                                sections: firstSections
+                            });
+                            updateTeacherLoad(teacher1._id, course.contact_hours, 2);
+                            console.log(`Assigned sections ${firstSections.join(', ')} to ${teacher1.full_name}`);
+
+                            const lastSection = [sections[2]];
+                            const teacher2 = getAvailableTeachers(teacher1._id, course._id, lastSection)
+                                .find(t => t.department === department);
+
+                            if (teacher2) {
+                                assignments.push({
+                                    teacher_id: teacher2._id,
+                                    course_id: course._id,
+                                    semester: course.semester,
+                                    academic_year: currentYear,
+                                    sections: lastSection
+                                });
+                                updateTeacherLoad(teacher2._id, course.contact_hours, 1);
+                                console.log(`Assigned section ${lastSection[0]} to ${teacher2.full_name}`);
+                            }
                         }
                     }
-                }
-                else { // 40% chance: different teachers for each section
+                    else { // 40% chance: different teachers for each section
+                        for (const section of sections) {
+                            const availableTeacher = getAvailableTeachers(null, course._id, [section])
+                                .find(t => t.department === department);
+
+                            if (availableTeacher) {
+                                assignments.push({
+                                    teacher_id: availableTeacher._id,
+                                    course_id: course._id,
+                                    semester: course.semester,
+                                    academic_year: currentYear,
+                                    sections: [section]
+                                });
+                                updateTeacherLoad(availableTeacher._id, course.contact_hours, 1);
+                                console.log(`Assigned section ${section} to ${availableTeacher.full_name}`);
+                            }
+                        }
+                    }
+                } 
+                else { // Lab/Sessional courses: always different teachers
                     for (const section of sections) {
-                        const teacher = getAvailableTeachers()[0];
-                        if (teacher) {
+                        const availableTeacher = getAvailableTeachers(null, course._id, [section])
+                            .find(t => t.department === department);
+
+                        if (availableTeacher) {
                             assignments.push({
-                                teacher_id: teacher._id,
+                                teacher_id: availableTeacher._id,
                                 course_id: course._id,
                                 semester: course.semester,
                                 academic_year: currentYear,
                                 sections: [section]
                             });
-                            updateTeacherLoad(teacher._id, course.contact_hours, 1);
+                            updateTeacherLoad(availableTeacher._id, course.contact_hours, 1);
+                            console.log(`Assigned section ${section} to ${availableTeacher.full_name} (${course.course_type})`);
                         }
-                    }
-                }
-            } 
-            else { // Lab/Sessional courses: always different teachers
-                for (const section of sections) {
-                    const teacher = getAvailableTeachers()[0];
-                    if (teacher) {
-                        assignments.push({
-                            teacher_id: teacher._id,
-                            course_id: course._id,
-                            semester: course.semester,
-                            academic_year: currentYear,
-                            sections: [section]
-                        });
-                        updateTeacherLoad(teacher._id, course.contact_hours, 1);
                     }
                 }
             }
@@ -216,61 +316,142 @@ async function seedTestData() {
             }
         }
 
+        // Add this to your seedTestData.js before creating new assignments
+        await mongoose.connection.collection('teachercourseassignments').dropIndexes();
+
         // Save to database
         const createdAssignments = await TeacherCourseAssignment.insertMany(assignments);
         const createdPreferences = await TeacherPreference.insertMany(preferences);
 
         // Print statistics
-        console.log('\nAssignment Statistics:');
+        console.log('\n=== Assignment Statistics ===');
         console.log(`Total Assignments Created: ${createdAssignments.length}`);
 
-        const courseStats = {};
-        createdAssignments.forEach(assignment => {
-            const courseCode = assignment.course_id.course_code;
-            if (!courseStats[courseCode]) {
-                courseStats[courseCode] = {
-                    teachers: new Set(),
-                    sections: new Set(),
-                    type: assignment.course_id.course_type
+        // Group assignments by department for better visibility
+        const departmentStats = {};
+        const teacherStats = {};
+
+        // Populate assignments with course and teacher details
+        const populatedAssignments = await TeacherCourseAssignment.find()
+            .populate('course_id', 'course_code department course_type')
+            .populate('teacher_id', 'full_name department academic_rank');
+
+        // Calculate statistics
+        populatedAssignments.forEach(assignment => {
+            const dept = assignment.course_id.department;
+            const teacherId = assignment.teacher_id._id.toString();
+            
+            // Initialize department stats
+            if (!departmentStats[dept]) {
+                departmentStats[dept] = {
+                    totalAssignments: 0,
+                    courseTypes: {},
+                    teacherCount: new Set()
                 };
             }
-            courseStats[courseCode].teachers.add(assignment.teacher_id.full_name);
-            assignment.sections.forEach(s => courseStats[courseCode].sections.add(s));
+            
+            // Update department stats
+            departmentStats[dept].totalAssignments++;
+            departmentStats[dept].teacherCount.add(teacherId);
+            
+            const courseType = assignment.course_id.course_type;
+            departmentStats[dept].courseTypes[courseType] = 
+                (departmentStats[dept].courseTypes[courseType] || 0) + 1;
+            
+            // Update teacher stats
+            if (!teacherStats[teacherId]) {
+                teacherStats[teacherId] = {
+                    name: assignment.teacher_id.full_name,
+                    department: assignment.teacher_id.department,
+                    rank: assignment.teacher_id.academic_rank,
+                    assignmentCount: 0,
+                    courses: new Set()
+                };
+            }
+            teacherStats[teacherId].assignmentCount++;
+            teacherStats[teacherId].courses.add(assignment.course_id.course_code);
         });
 
-        console.log('\nCourse Distribution:');
-        Object.entries(courseStats).forEach(([courseCode, stats]) => {
-            console.log(`${courseCode} (${stats.type}):`);
-            console.log(`  Teachers: ${Array.from(stats.teachers).join(', ')}`);
-            console.log(`  Sections: ${Array.from(stats.sections).join(', ')}`);
+        // Print Department Statistics
+        console.log('\n=== Department-wise Statistics ===');
+        Object.entries(departmentStats).forEach(([dept, stats]) => {
+            console.log(`\n${dept} Department:`);
+            console.log(`  Total Assignments: ${stats.totalAssignments}`);
+            console.log(`  Unique Teachers: ${stats.teacherCount.size}`);
+            console.log('  Course Types:');
+            Object.entries(stats.courseTypes).forEach(([type, count]) => {
+                console.log(`    - ${type}: ${count}`);
+            });
         });
 
-        console.log('\nTeacher Load Distribution:');
-        for (const [teacherId, load] of teacherLoadMap) {
-            const teacher = teachers.find(t => t._id.toString() === teacherId);
-            console.log(
-                `${teacher.full_name} (${teacher.academic_rank}): ` +
-                `${load.totalHours} hours, ${load.courseCount} courses`
-            );
+        // Print Teacher Statistics
+        console.log('\n=== Teacher Assignment Statistics ===');
+        Object.entries(teacherStats)
+            .sort((a, b) => b[1].assignmentCount - a[1].assignmentCount)
+            .forEach(([_, stats]) => {
+                console.log(`\n${stats.name} (${stats.department} - ${stats.rank}):`);
+                console.log(`  Assignments: ${stats.assignmentCount}`);
+                console.log(`  Unique Courses: ${stats.courses.size}`);
+            });
+
+        // Print any department mismatches (validation)
+        console.log('\n=== Department Alignment Validation ===');
+        let mismatchFound = false;
+        populatedAssignments.forEach(assignment => {
+            if (assignment.teacher_id.department !== assignment.course_id.department) {
+                mismatchFound = true;
+                console.log(`WARNING: Mismatch found:`);
+                console.log(`  Course: ${assignment.course_id.course_code} (${assignment.course_id.department})`);
+                console.log(`  Teacher: ${assignment.teacher_id.full_name} (${assignment.teacher_id.department})`);
+            }
+        });
+
+        if (!mismatchFound) {
+            console.log('✅ All assignments are properly aligned by department');
         }
 
-        console.log('\nPreference Statistics:');
-        const prefStats = preferences.reduce((acc, pref) => {
-            acc[pref.preference_level] = (acc[pref.preference_level] || 0) + 1;
-            return acc;
-        }, {});
-        
-        Object.entries(prefStats).forEach(([level, count]) => {
-            console.log(`${level}: ${count} preferences`);
+        // After creating assignments, fetch and display statistics
+        const finalAssignments = await TeacherCourseAssignment.find()
+            .populate('course_id', 'course_code department course_type')
+            .populate('teacher_id', 'full_name department academic_rank');
+
+        console.log('\n=== Assignment Results ===');
+        const stats = {
+            totalAssignments: finalAssignments.length,
+            byDepartment: {},
+            mismatches: 0
+        };
+
+        finalAssignments.forEach(assignment => {
+            const dept = assignment.course_id.department;
+            stats.byDepartment[dept] = (stats.byDepartment[dept] || 0) + 1;
+            
+            if (assignment.teacher_id.department !== dept) {
+                stats.mismatches++;
+                console.log(`WARNING: Department mismatch:`);
+                console.log(`  Course: ${assignment.course_id.course_code} (${dept})`);
+                console.log(`  Teacher: ${assignment.teacher_id.full_name} (${assignment.teacher_id.department})`);
+            }
         });
 
+        console.log('\nTotal Assignments:', stats.totalAssignments);
+        console.log('\nAssignments by Department:');
+        Object.entries(stats.byDepartment).forEach(([dept, count]) => {
+            console.log(`${dept}: ${count} assignments`);
+        });
+        console.log('\nDepartment Mismatches:', stats.mismatches);
+
+        if (stats.mismatches === 0) {
+            console.log('✅ All assignments are properly aligned by department');
+        }
+
     } catch (error) {
-        console.error('Error seeding test data:', error);
+        console.error('\n❌ Error seeding test data:', error.message);
         process.exit(1);
     } finally {
         if (connection) {
             await connection.disconnect();
-            console.log('Disconnected from MongoDB');
+            console.log('\nDisconnected from MongoDB');
         }
     }
 }
@@ -286,4 +467,15 @@ process.on('unhandledRejection', (error) => {
     process.exit(1);
 });
 
-seedTestData().catch(console.error);
+if (require.main === module) {
+    seedTestData()
+        .then(() => {
+            console.log('\n=== Seeding Completed Successfully ===');
+            process.exit(0);
+        })
+        .catch(error => {
+            console.error('\n=== Seeding Failed ===');
+            console.error(error);
+            process.exit(1);
+        });
+}

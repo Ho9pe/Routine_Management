@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Teacher = require('../models/Teacher');
 const TeacherCourseAssignment = require('../models/TeacherCourseAssignment');
+const Course = require('../models/Course');
 
 // Get teacher profile
 router.get('/profile', auth, async (req, res) => {
@@ -49,19 +50,30 @@ router.put('/profile', auth, async (req, res) => {
 // Update the course fetching route
 router.get('/courses', auth, async (req, res) => {
     try {
+        // First get the teacher's full details including department
+        const teacher = await Teacher.findById(req.user.id);
+        if (!teacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+
+        // Get teacher's current assignments
         const assignments = await TeacherCourseAssignment
             .find({ teacher_id: req.user.id })
             .populate({
                 path: 'course_id',
-                select: 'course_code course_name credit_hours contact_hours course_type' // Added contact_hours
+                select: 'course_code course_name credit_hours contact_hours course_type department'
             })
             .sort({ semester: 1 });
 
-        if (!assignments) {
-            return res.status(404).json({ message: 'No courses found' });
-        }
+        // Get all available courses for this teacher's department
+        const availableCourses = await Course.find({ 
+            department: teacher.department 
+        });
 
-        res.json(assignments);
+        res.json({
+            assignments,
+            availableCourses
+        });
     } catch (error) {
         console.error('Error fetching teacher courses:', error);
         res.status(500).json({ message: 'Server error' });
@@ -73,6 +85,25 @@ router.post('/courses/assign', auth, async (req, res) => {
     try {
         const { course_id, semester, academic_year, sections } = req.body;
         
+        // Get teacher details
+        const teacher = await Teacher.findById(req.user.id);
+        if (!teacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+
+        // Get course details and verify department
+        const course = await Course.findById(course_id);
+        if (!course) {
+            return res.status(400).json({ message: 'Course not found' });
+        }
+
+        // Check if course belongs to teacher's department
+        if (course.department !== teacher.department) {
+            return res.status(403).json({ 
+                message: `You can only be assigned to ${teacher.department} department courses` 
+            });
+        }
+
         // Find existing assignment for this course
         let existingAssignment = await TeacherCourseAssignment.findOne({
             teacher_id: req.user.id,
@@ -105,7 +136,7 @@ router.post('/courses/assign', auth, async (req, res) => {
                 .findById(existingAssignment._id)
                 .populate({
                     path: 'course_id',
-                    select: 'course_code course_name credit_hours contact_hours course_type'
+                    select: 'course_code course_name credit_hours contact_hours course_type department'
                 });
 
             res.json(populatedAssignment);
@@ -126,7 +157,7 @@ router.post('/courses/assign', auth, async (req, res) => {
                 .findById(assignment._id)
                 .populate({
                     path: 'course_id',
-                    select: 'course_code course_name credit_hours contact_hours course_type'
+                    select: 'course_code course_name credit_hours contact_hours course_type department'
                 });
 
             res.status(201).json(populatedAssignment);

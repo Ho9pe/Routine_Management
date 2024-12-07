@@ -7,18 +7,6 @@
     border-bottom: 1px solid #3d3d3d;
 }
 
-.logo {
-    color: #60a5fa;
-    font-size: 1.5rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.logo:hover {
-    color: #93c5fd;
-}
-
 .navLinks {
     display: flex;
     align-items: center;
@@ -76,6 +64,23 @@
 
 .logoutButton:active {
     transform: translateY(0);
+}
+
+.logoContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.logoContainer:hover {
+    opacity: 0.9;
+}
+
+.logo {
+    object-fit: contain;
+    transition: opacity 0.2s ease;
 }
 
 @media (max-width: 768px) {

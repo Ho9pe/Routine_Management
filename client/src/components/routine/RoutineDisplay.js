@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { TIME_SLOTS, WORKING_DAYS } from '../../../../server/src/constants/timeSlots';
 import styles from './RoutineDisplay.module.css';
@@ -239,8 +240,23 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
         return cells;
     };
 
-    if (loading) {
+    if (loading && user?.role === 'student' && studentInfo?.semester) {
         return <div className={styles.loading}>Loading...</div>;
+    }
+
+    if (loading && user?.role === 'student' && !studentInfo?.semester) {
+        return (
+            <div className={styles.noSemesterContainer}>
+                <div className={styles.noSemesterContent}>
+                    <div className={styles.warningIcon}>⚠️</div>
+                    <h3>Semester Not Set</h3>
+                    <p>Please set your semester in your dashboard before viewing the routine.</p>
+                    <Link href="/student/dashboard" className={styles.setupButton}>
+                        Go to Dashboard
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     return (

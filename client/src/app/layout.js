@@ -3,9 +3,20 @@ import Navigation from '@/components/common/Navigation';
 import PageTransition from '@/components/common/PageTransition';
 import './globals.css';
 
+export const metadata = {
+    title: 'University Routine Manager',
+    description: 'Manage your university routine efficiently',
+    icons: {
+        icon: '/favicon.ico'
+    },
+};
+
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
+            <head>
+                <link rel="icon" href="/favicon.ico" sizes="any" />
+            </head>
             <body>
                 <AuthProvider>
                     <Navigation />

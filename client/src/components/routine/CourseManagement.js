@@ -27,7 +27,6 @@ export default function CourseManagement() {
             fetchCourses();
         } else if (user?.role === 'teacher') {
             fetchAssignedCourses();
-            fetchAvailableCourses();
         }
     }, [user]);
 
@@ -75,34 +74,19 @@ export default function CourseManagement() {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-    
+
             if (!response.ok) {
                 throw new Error('Failed to fetch courses');
             }
-    
+
             const data = await response.json();
-            setAssignedCourses(data);
+            setAssignedCourses(data.assignments || []);
+            setAvailableCourses(data.availableCourses || []);
         } catch (error) {
             console.error('Error fetching assigned courses:', error);
             setError('Failed to fetch assigned courses');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchAvailableCourses = async () => {
-        try {
-            const response = await fetch('/api/courses', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setAvailableCourses(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch available courses');
         }
     };
 
@@ -223,6 +207,11 @@ export default function CourseManagement() {
     };
 
     const groupAssignmentsByCourse = (assignments) => {
+        if (!Array.isArray(assignments)) {
+            console.error('Assignments is not an array:', assignments);
+            return [];
+        }
+
         return assignments.reduce((acc, curr) => {
             const existingCourse = acc.find(item => 
                 item.course_id._id === curr.course_id._id
@@ -279,53 +268,61 @@ export default function CourseManagement() {
                     duration={5000}
                 />
             )}
+
             {user?.role === 'teacher' ? (
                 // Teacher View
                 <div className={styles.courseGrid}>
-                    {groupAssignmentsByCourse(assignedCourses)?.map(assignment => (
-                        <div key={assignment._id} className={styles.courseCard}>
-                            <div className={styles.courseHeader}>
-                                <h4 className={styles.courseCode}>
-                                    {assignment.course_id.course_code}
-                                </h4>
-                                <div className={styles.headerActions}>
-                                    <span className={`${styles.courseType} ${styles[assignment.course_id.course_type]}`}>
-                                        {assignment.course_id.course_type}
-                                    </span>
-                                    <button 
-                                        onClick={() => handleRemoveClick(assignment._id)}
-                                        className={styles.removeButton}
-                                        title="Remove Course"
-                                    >
-                                        ×
-                                    </button>
+                    {assignedCourses && Array.isArray(assignedCourses) ? 
+                        groupAssignmentsByCourse(assignedCourses)?.map(assignment => (
+                            <div key={assignment._id} className={styles.courseCard}>
+                                <div className={styles.courseHeader}>
+                                    <h4 className={styles.courseCode}>
+                                        {assignment.course_id.course_code}
+                                    </h4>
+                                    <div className={styles.headerActions}>
+                                        <span className={`${styles.courseType} ${styles[assignment.course_id.course_type]}`}>
+                                            {assignment.course_id.course_type}
+                                        </span>
+                                        <span className={styles.departmentBadge}>
+                                            {assignment.course_id.department}
+                                        </span>
+                                        <button 
+                                            onClick={() => handleRemoveClick(assignment._id)}
+                                            className={styles.removeButton}
+                                            title="Remove Course"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                                <h3 className={styles.courseName}>
+                                    {assignment.course_id.course_name}
+                                </h3>
+                                <div className={styles.courseDetails}>
+                                    <div className={styles.detailItem}>
+                                        <span className={styles.label}>Credit Hours:</span>
+                                        <span className={styles.value}>
+                                            {assignment.course_id.credit_hours}
+                                        </span>
+                                    </div>
+                                    <div className={styles.detailItem}>
+                                        <span className={styles.label}>Contact Hours:</span>
+                                        <span className={styles.value}>
+                                            {assignment.course_id.contact_hours}
+                                        </span>
+                                    </div>
+                                    <div className={styles.detailItem}>
+                                        <span className={styles.label}>Sections:</span>
+                                        <span className={styles.value}>
+                                            {assignment.sections.join(', ')}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            <h3 className={styles.courseName}>
-                                {assignment.course_id.course_name}
-                            </h3>
-                            <div className={styles.courseDetails}>
-                                <div className={styles.detailItem}>
-                                    <span className={styles.label}>Credit Hours:</span>
-                                    <span className={styles.value}>
-                                        {assignment.course_id.credit_hours}
-                                    </span>
-                                </div>
-                                <div className={styles.detailItem}>
-                                    <span className={styles.label}>Contact Hours:</span>
-                                    <span className={styles.value}>
-                                        {assignment.course_id.contact_hours}
-                                    </span>
-                                </div>
-                                <div className={styles.detailItem}>
-                                    <span className={styles.label}>Sections:</span>
-                                    <span className={styles.value}>
-                                        {assignment.sections.join(', ')}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                        : 
+                        <div className={styles.noCourses}>No courses assigned</div>
+                    }
                 </div>
             ) : (
                 // Student View
@@ -392,11 +389,16 @@ export default function CourseManagement() {
                                     value={newAssignment.course_id}
                                     onChange={handleCourseSelect}
                                     required
+                                    className={styles.courseSelect}
                                 >
                                     <option value="">Choose a course</option>
                                     {availableCourses?.map(course => (
-                                        <option key={course._id} value={course._id}>
-                                            {course.course_name} ({course.course_code})
+                                        <option 
+                                            key={course._id} 
+                                            value={course._id}
+                                            data-code={course.course_code}
+                                        >
+                                            {`${course.course_code} - ${course.course_name}`}
                                         </option>
                                     ))}
                                 </select>

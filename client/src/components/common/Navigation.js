@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
 import styles from './Navigation.module.css';
@@ -86,10 +87,15 @@ export default function Navigation() {
 
     return (
         <nav className={styles.nav}>
-            <Link href="/" className={styles.logo}>
-                University Routine Manager
+            <Link href="/" className={styles.logoContainer}>
+                <Image
+                    src="/images/ruet-logo.png"
+                    alt="University Routine Manager"
+                    height={38}
+                    width={38}
+                    className={styles.logo}
+                />
             </Link>
-            
             {user ? (
                 <>
                     {user.role === 'admin' && renderAdminNav()}
