@@ -36,10 +36,11 @@ export default function Home() {
         </div>
         
         <div className={styles.features}>
-          <div className={styles.feature}>
-            <div className={styles.featureIcon}>👨‍🎓</div>
-            <h2>For Students</h2>
-            <ul className={styles.featureList}>
+          <div className={styles.featuresGrid}>
+            <div className={styles.feature}>
+              <div className={styles.featureIcon}>👨‍🎓</div>
+              <h2>For Students</h2>
+              <ul className={styles.featureList}>
               <li>Access your class schedule anytime, anywhere</li>
               <li>View detailed course information</li>
               <li>Get real-time updates on schedule changes</li>
@@ -47,13 +48,13 @@ export default function Home() {
             </ul>
             <Link href="/register?role=student" className={styles.featureLink}>
               Register as Student →
-            </Link>
-          </div>
+              </Link>
+            </div>
 
-          <div className={styles.feature}>
-            <div className={styles.featureIcon}>👨‍🏫</div>
-            <h2>For Teachers</h2>
-            <ul className={styles.featureList}>
+            <div className={styles.feature}>
+              <div className={styles.featureIcon}>👨‍🏫</div>
+              <h2>For Teachers</h2>
+              <ul className={styles.featureList}>
               <li>Manage your teaching schedule efficiently</li>
               <li>Set your preferred time slots</li>
               <li>Track your course assignments</li>
@@ -62,10 +63,9 @@ export default function Home() {
             <Link href="/register?role=teacher" className={styles.featureLink}>
               Register as Teacher →
             </Link>
-          </div>
-
-          <div className={styles.feature}>
-            <div className={styles.featureIcon}>⚡</div>
+            </div>
+            <div className={styles.feature}>
+              <div className={styles.featureIcon}>⚡</div>
             <h2>Quick Access</h2>
             <ul className={styles.featureList}>
               <li>Intuitive and modern interface</li>
@@ -73,6 +73,7 @@ export default function Home() {
               <li>Real-time schedule updates</li>
               <li>Smart conflict resolution</li>
             </ul>
+            </div>
           </div>
         </div>
 
@@ -102,17 +103,19 @@ export default function Home() {
           </div>
         </div>
 
-        <div className={styles.infoSection}>
-          <div className={styles.infoCard}>
-            <h3>Departments</h3>
-            <ul className={styles.departmentList}>
-              <li>Computer Science & Engineering (CSE)</li>
-              <li>Electrical & Electronic Engineering (EEE)</li>
-              <li>Mathematics (MATH)</li>
-              <li>Physics (PHY)</li>
-              <li>Chemistry (CHEM)</li>
-              <li>Humanities (HUM)</li>
-            </ul>
+        <div className={styles.infoSectionWrapper}>
+          <div className={styles.infoSection}>
+            <div className={styles.infoCard}>
+              <h3>Departments</h3>
+              <ul className={styles.departmentList}>
+                <li>Computer Science & Engineering (CSE)</li>
+                <li>Electrical & Electronic Engineering (EEE)</li>
+                <li>Mathematics (MATH)</li>
+                <li>Physics (PHY)</li>
+                <li>Chemistry (CHEM)</li>
+                <li>Humanities (HUM)</li>
+              </ul>
+            </div>
           </div>
         </div>
       </main>
