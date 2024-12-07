@@ -7,52 +7,47 @@ A web application for managing university class routines with role-based access 
 
 ### ✅ Completed Features
 
-#### User Management
+#### User Management ✅
 - Role-based authentication system
 - User registration and login
 - Profile management for students and teachers
 - Secure password handling
 - JWT-based authentication
 
-#### Course Management
+#### Course Management ✅
 - Course CRUD operations
 - Department-wise course organization
 - Credit hour management
 - Course type categorization (Theory, Sessional, Project, Thesis)
 - Teacher-course assignments
 
-#### Schedule Management
+#### Schedule Management ✅
 - Interactive routine display
 - Section-wise schedule viewing
 - Semester-based organization
 - Time slot management
 - Course conflict detection
 
-#### Teacher Features
+#### Teacher Features ✅
 - Course assignment management
 - Profile customization
 - Teaching schedule view
 - Department affiliation
 - Academic rank system
 
-#### Student Features
+#### Student Features ✅
 - Semester-wise routine view
 - Section-based schedule access
 - Profile management
 - Batch management
 - Department organization
 
-### ❌ TODO
-
-#### Enhanced Features
-- Update UI, Animations, Transitions and Smoothness ✅
-- Error handling, Pop up confirmation button on Admin Panel ✅
+#### Enhanced Features ✅
+- Update UI, Animations, Transitions and Smoothness
+- Error handling, Pop up confirmation button on Admin Panel
 - Add More Departmental Teachers into Teacher Model
 - Assign Teacher to Course Department wise on testData.js
-- Usage statistics
-- Performance metrics
-- Load distribution analysis
-- Resource utilization tracking
+- Statistics on Home Page
 
 ## Technical Stack
 - Frontend: Next.js 13+ with App Router
