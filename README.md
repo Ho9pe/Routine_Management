@@ -7,75 +7,80 @@ A web application for managing university class routines with role-based access 
 
 ### ✅ Completed Features
 
-[Previous completed features remain the same...]
+#### User Management
+- Role-based authentication system
+- User registration and login
+- Profile management for students and teachers
+- Secure password handling
+- JWT-based authentication
 
-#### Schedule Generation System
-- Automated routine generation algorithm
-- Academic rank-based priority system
-- Conflict detection and resolution
-- Section-wise schedule distribution
-- Teacher workload balancing
+#### Course Management
+- Course CRUD operations
+- Department-wise course organization
+- Credit hour management
+- Course type categorization (Theory, Sessional, Project, Thesis)
+- Teacher-course assignments
 
-#### Admin Management
-- Complete admin dashboard
-- User management interface
-- Course management system
-- Statistics and analytics
-- System-wide controls
+#### Schedule Management
+- Interactive routine display
+- Section-wise schedule viewing
+- Semester-based organization
+- Time slot management
+- Course conflict detection
 
-#### Advanced Preference Management
-- Teacher preference system
-- Priority-based scheduling
-- Workload distribution
-- Time slot optimization
-- Conflict handling
+#### Teacher Features
+- Course assignment management
+- Profile customization
+- Teaching schedule view
+- Department affiliation
+- Academic rank system
+
+#### Student Features
+- Semester-wise routine view
+- Section-based schedule access
+- Profile management
+- Batch management
+- Department organization
 
 ### ❌ Pending Implementation
 
-#### 1. Department Management
-- Department-wise course organization
-- Faculty assignment
-- Resource allocation
-- Semester management
+#### Enhanced Features
+- Update UI, Animations, Transitions and Smoothness ✅
+- Update functionality, Error handling, Pop up confirmation button on Admin Panel
 
-#### 2. Enhanced Features
-- Schedule export functionality
-- Print optimization
-- Email notifications
-- Batch operations
-- Advanced search capabilities
-- Report generation
+#### Advanced Analytics
+- Usage statistics
+- Performance metrics
+- Load distribution analysis
+- Resource utilization tracking
 
-#### 1. Admin Management
-- Admin Dashboard
-- Admin Management Interface
+## Technical Stack
+- Frontend: Next.js 13+ with App Router
+- Backend: Express.js
+- Database: MongoDB
+- Authentication: JWT
+- Styling: CSS Modules
 
-#### 2. Schedule Generation System
-- Automated routine generation algorithm
-- Academic rank-based priority system
-- Conflict detection and resolution
-- Room allocation optimization
-- Section-wise schedule distribution
+## Key Features
 
-#### 3. Advanced Preference Management
-- Conflict validation
-- Priority-based preference handling
-- Time slot optimization
-- Workload distribution
+### Responsive Design
+- Mobile-friendly interface
+- Adaptive layouts
+- Dark mode support
+- Accessible components
 
-#### 4. Department Management
-- Department-wise course organization
-- Faculty assignment
-- Resource allocation
-- Semester management
+### Security
+- JWT authentication
+- Role-based access control
+- Secure password handling
+- Protected API endpoints
 
-#### 5. Enhanced Features
-- Schedule export functionality
-- Print optimization
-- Email notifications
-- Batch operations
-- Advanced search capabilities
-- Report generation
+### User Experience
+- Intuitive navigation
+- Real-time updates
+- Interactive components
+- Error handling
+- Loading states
 
 ## Technical Stack
 - Frontend: Next.js 13+ with App Router

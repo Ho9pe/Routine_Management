@@ -272,12 +272,14 @@ export default function AdminPanel() {
         }
     
         return (
-            <>
+            <div className={styles.tableContainer}>
                 <StatsDisplay data={data} type={activeTab} />
-                {activeTab === 'students' && renderStudentTable()}
-                {activeTab === 'teachers' && renderTeacherTable()}
-                {activeTab === 'courses' && renderCourseTable()}
-            </>
+                <div className={styles.tableWrapper}>
+                    {activeTab === 'students' && renderStudentTable()}
+                    {activeTab === 'teachers' && renderTeacherTable()}
+                    {activeTab === 'courses' && renderCourseTable()}
+                </div>
+            </div>
         );
     };
 
@@ -301,24 +303,16 @@ export default function AdminPanel() {
                 />
             )}
             <div className={styles.tabs}>
-                <button
-                    className={`${styles.tab} ${activeTab === 'students' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('students')}
-                >
-                    Students
-                </button>
-                <button
-                    className={`${styles.tab} ${activeTab === 'teachers' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('teachers')}
-                >
-                    Teachers
-                </button>
-                <button
-                    className={`${styles.tab} ${activeTab === 'courses' ? styles.active : ''}`}
-                    onClick={() => setActiveTab('courses')}
-                >
-                    Courses
-                </button>
+                {['students', 'teachers', 'courses'].map((tab) => (
+                    <button
+                        key={tab}
+                        className={`${styles.tab} ${activeTab === tab ? styles.active : ''}`}
+                        onClick={() => setActiveTab(tab)}
+                    >
+                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        {activeTab === tab && <div className={styles.activeIndicator} />}
+                    </button>
+                ))}
             </div>
             <div className={styles.content}>
                 {renderTable()}

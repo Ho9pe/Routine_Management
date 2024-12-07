@@ -30,6 +30,7 @@
     gap: 1rem;
     margin-bottom: 2rem;
     border-bottom: 1px solid #3d3d3d;
+    position: relative;
 }
 
 .tab {
@@ -39,20 +40,76 @@
     color: #9ca3af;
     cursor: pointer;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.tab:hover {
+    color: #60a5fa;
 }
 
 .tab.active {
     color: #60a5fa;
-    border-bottom: 2px solid #60a5fa;
+}
+
+.activeIndicator {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #60a5fa;
+    animation: slideIn 0.3s ease-out;
+}
+
+.tableContainer {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.tableWrapper {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background-color: #2d2d2d;
     border-radius: 8px;
     overflow: hidden;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .table th,
@@ -60,23 +117,18 @@
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #3d3d3d;
+    transition: background-color 0.2s ease;
 }
 
-.table td {
-    vertical-align: middle;
-}
-
-.table th {
-    background-color: #1f1f1f;
-    color: #e0e0e0;
-    font-weight: 500;
-    white-space: nowrap;
+.table tr {
+    transition: background-color 0.2s ease;
 }
 
 .table tr:hover {
     background-color: #363636;
 }
 
+/* Delete button with animation */
 .deleteButton {
     padding: 0.5rem 1rem;
     background-color: #ef4444;
@@ -89,12 +141,22 @@
 
 .deleteButton:hover {
     background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
 }
 
-.loading {
+.deleteButton:active {
+    transform: translateY(0);
+}
+
+/* Loading and No Data states */
+.loading, .noData {
     text-align: center;
     padding: 2rem;
     color: #9ca3af;
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .sortableHeader {
@@ -115,8 +177,7 @@
 }
 
 .sortIcon {
-    color: #60a5fa;
-    font-size: 0.875rem;
+    transition: transform 0.2s ease;
 }
 
 .badge {
@@ -126,8 +187,13 @@
     font-weight: 500;
     text-transform: capitalize;
     display: inline-block;
+    transition: all 0.2s ease;
 }
 
+.badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
 .theory {
     background-color: rgba(59, 130, 246, 0.1);
@@ -163,7 +229,13 @@
         width: 100%;
     }
 
+    .tab{
+        padding: 0.75rem 1rem;
+        white-space: nowrap;
+    }
+
     .tabs {
         overflow-x: auto;
+        padding-bottom: 1rem;
     }
 }

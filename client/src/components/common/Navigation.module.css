@@ -32,11 +32,25 @@
     transition: all 0.2s ease;
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
+    border: 1px solid transparent;
+    position: relative;
 }
 
-.navLinks a:hover {
-    color: #60a5fa;
-    background-color: #2d2d2d;
+.navLinks a:after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #60a5fa;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.navLinks a:hover:after,
+.navLinks a.active:after {
+    width: 100%;
 }
 
 .active {

@@ -1,19 +1,21 @@
 import { AuthProvider } from '@/context/AuthContext';
 import Navigation from '@/components/common/Navigation';
-import RouteTransition from '@/components/common/RouteTransition';
+import PageTransition from '@/components/common/PageTransition';
 import './globals.css';
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-        <AuthProvider>
-          <Navigation />
-          <RouteTransition>
-            {children}
-          </RouteTransition>
-        </AuthProvider>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+            <body>
+                <AuthProvider>
+                    <Navigation />
+                    <PageTransition>
+                        <main className="main-content">
+                            {children}
+                        </main>
+                    </PageTransition>
+                </AuthProvider>
+            </body>
+        </html>
+    );
 }

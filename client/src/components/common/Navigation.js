@@ -70,12 +70,14 @@ export default function Navigation() {
             <Link 
                 href="/register"
                 className={isActive('/register') ? styles.active : ''}
+                prefetch={true}
             >
                 Register
             </Link>
             <Link 
                 href="/login"
                 className={isActive('/login') ? styles.active : ''}
+                prefetch={true}
             >
                 Login
             </Link>
