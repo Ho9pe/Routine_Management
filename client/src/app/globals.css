@@ -51,6 +51,15 @@ button {
   font: inherit;
 }
 
+body.overlay-active {
+  overflow: hidden;
+  padding-right: 15px; /* Compensate for scrollbar disappearance */
+}
+
+html.overlay-active {
+  overflow: hidden;
+}
+
 /* Custom scrollbar for Webkit browsers */
 ::-webkit-scrollbar {
   width: 8px;

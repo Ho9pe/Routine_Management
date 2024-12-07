@@ -322,6 +322,120 @@
     margin-top: 0.5rem;
 }
 
+.confirmOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    padding: 2rem 1rem;
+    overflow-y: auto;
+    height: calc(100vh - 64px);
+    box-sizing: border-box;
+}
+
+.confirmDialog {
+    background-color: #2d2d2d;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    border: 1px solid #3d3d3d;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.2s ease-out;
+    margin: auto;
+    position: relative;
+}
+
+.confirmDialog h4 {
+    color: #e0e0e0;
+    font-size: 1.25rem;
+    margin: 0 0 1rem 0;
+}
+
+.confirmDialog p {
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.confirmActions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.confirmActions button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.confirmActions .submitButton {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.confirmActions .submitButton:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.confirmActions .cancelButton {
+    background-color: #4b5563;
+    color: white;
+}
+
+.confirmActions .cancelButton:hover {
+    background-color: #374151;
+    transform: translateY(-1px);
+}
+
+.successIcon {
+    width: 60px;
+    height: 60px;
+    background-color: #059669;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: white;
+    animation: scaleIn2 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn2 {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
 @media (max-width: 768px) {
     .adminRoutine {
         padding: 1rem;
@@ -345,5 +459,19 @@
 
     .summaryStats {
         grid-template-columns: 1fr;
+    }
+
+    .confirmDialog {
+        width: 95%;
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .confirmActions {
+        flex-direction: column;
+    }
+
+    .confirmActions button {
+        width: 100%;
     }
 }

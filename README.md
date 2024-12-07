@@ -42,13 +42,13 @@ A web application for managing university class routines with role-based access 
 - Batch management
 - Department organization
 
-### ❌ Pending Implementation
+### ❌ TODO
 
 #### Enhanced Features
 - Update UI, Animations, Transitions and Smoothness ✅
-- Update functionality, Error handling, Pop up confirmation button on Admin Panel
-
-#### Advanced Analytics
+- Error handling, Pop up confirmation button on Admin Panel ✅
+- Add More Departmental Teachers into Teacher Model
+- Assign Teacher to Course Department wise on testData.js
 - Usage statistics
 - Performance metrics
 - Load distribution analysis
