@@ -5,7 +5,6 @@ import styles from './CourseManagement.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 import { semesterToYear } from '@/lib/semesterMapping';
 import { getSemesterFromCourseCode } from '@/lib/courseUtils';
-import PreferenceEditor from './PreferenceEditor';
 
 export default function CourseManagement() {
     const { user } = useAuth();
@@ -319,7 +318,6 @@ export default function CourseManagement() {
                                         </span>
                                     </div>
                                 </div>
-                                <PreferenceEditor courseAssignment={assignment} />
                             </div>
                         ))
                         : 
