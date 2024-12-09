@@ -210,13 +210,13 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                         <div className={styles.courseName}>
                             {classSession.course_id.course_name}
                         </div>
+                        {classSession.teacher_id && (
+                            <div className={styles.teacherInfo}>
+                                {classSession.teacher_id.full_name}
+                            </div>
+                        )}
                         {(user?.role === 'teacher' || user?.role === 'admin') && classSession.section && (
                             <div className={styles.sectionInfo}>
-                                {user?.role === 'admin' && classSession.teacher_id && (
-                                    <div className={styles.teacherInfo}>
-                                        {classSession.teacher_id.full_name}
-                                    </div>
-                                )}
                                 <div>Section: {classSession.section}</div>
                             </div>
                         )}

@@ -49,6 +49,11 @@ A web application for managing university class routines with role-based access 
 - Assign Teacher to Course Department wise on testData.js
 - Statistics on Home Page
 
+#### To Do
+- Update /teacher/course page, Let Teacher select assigned courses's time slot/preference
+- Update/Optimize Routine Generation Algorithm
+- Handle Sessional Course's Routine Generation properly
+
 ## Technical Stack
 - Frontend: Next.js 13+ with App Router
 - Backend: Express.js
