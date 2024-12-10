@@ -231,7 +231,7 @@ router.post('/admin/generate', auth, roleCheck(['admin']), async (req, res) => {
             success: true,
             scheduledCourses: result.scheduledCourses,
             skippedCourses: result.skippedCourses,
-            conflicts: result.conflicts,
+            conflicts: result.conflicts?.length || 0,
             sessionId: session._id
         });
 
