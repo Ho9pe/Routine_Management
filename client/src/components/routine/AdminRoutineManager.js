@@ -24,7 +24,6 @@ export default function AdminRoutineManager() {
     }, []);
 
     useEffect(() => {
-        // Automatically show routine viewer if routine exists
         if (routineStatus?.hasRoutine) {
             setShowRoutine(true);
         }
@@ -53,10 +52,12 @@ export default function AdminRoutineManager() {
 
     const fetchRoutineStatus = async () => {
         try {
-            const response = await fetch('/api/schedule/admin/status', {
+            const response = await fetch('http://localhost:5000/api/schedule/admin/status', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                },
+                mode: 'cors',
+                credentials: 'include'
             });
             const data = await response.json();
             if (response.ok) {
@@ -74,11 +75,7 @@ export default function AdminRoutineManager() {
             setShowConfirmDialog(true);
             return;
         }
-        await generateRoutine();
-        setShowConfirmDialog(false);
-    };
-
-    const generateRoutine = async () => {
+    
         try {
             setGenerating(true);
             setError('');
@@ -86,35 +83,41 @@ export default function AdminRoutineManager() {
             setGenerationResult(null);
             setShowRoutine(false);
             
-            const response = await fetch('/api/schedule/admin/generate', {
+            // Make request directly to Express server
+            const response = await fetch('http://localhost:5000/api/schedule/admin/generate', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors',
+                credentials: 'include'
             });
-            
+
             const data = await response.json();
             
-            if (response.ok) {
-                setGenerationResult(data);
+            if (response.ok && data.success) {
+                setGenerationResult({
+                    scheduledCourses: data.scheduledCourses,
+                    skippedCourses: data.skippedCourses
+                });
                 setSuccess('Routine generated successfully!');
-                fetchRoutineStatus();
+                
+                await fetchRoutineStatus();
+                setShowRoutine(true);
                 setKey(prevKey => prevKey + 1);
                 
-                // Show success message in overlay
                 setConfirmSuccess(true);
-                
-                // Close overlay after delay
                 setTimeout(() => {
                     setShowConfirmDialog(false);
                     setConfirmSuccess(false);
-                }, 2000); // 2 second delay
+                }, 2000);
             } else {
-                setError(data.message || 'Failed to generate routine');
-                setShowConfirmDialog(false);
+                throw new Error(data.message || 'Failed to generate routine');
             }
         } catch (error) {
-            setError('Failed to generate routine');
+            console.error('Generation error:', error);
+            setError(error.message || 'Failed to generate routine. Please try again.');
             setShowConfirmDialog(false);
         } finally {
             setGenerating(false);
@@ -198,16 +201,13 @@ export default function AdminRoutineManager() {
                     </button>
                 </div>
             </div>
-
             {error && (
                 <ErrorMessage 
                     message={error}
                     onDismiss={() => setError('')}
                 />
             )}
-
             {generationResult && renderGenerationSummary()}
-
             {showRoutine && (
                 <div className={styles.viewSection}>
                     <div className={styles.viewHeader}>
@@ -243,7 +243,6 @@ export default function AdminRoutineManager() {
                             </select>
                         </div>
                     </div>
-
                     {(!selectedSection || !selectedSemester) ? (
                         <div className={styles.selectionPrompt}>
                             Please select both section and semester to view the routine
@@ -267,9 +266,7 @@ export default function AdminRoutineManager() {
                                 <p>This will overwrite the existing routine. Are you sure you want to continue?</p>
                                 <div className={styles.confirmActions}>
                                     <button 
-                                        onClick={() => {
-                                            generateRoutine();
-                                        }}
+                                        onClick={handleGenerateRoutine}
                                         className={styles.submitButton}
                                         disabled={generating}
                                     >

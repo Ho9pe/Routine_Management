@@ -5,6 +5,10 @@ const Course = require('../models/Course');
 
 class RoutineGenerator {
     constructor(courseAssignments, preferences) {
+        console.log('RoutineGenrator Initialized with', {
+            assignments: courseAssignments.length,
+            preferences: preferences.length
+        });
         if (!Array.isArray(courseAssignments) || !Array.isArray(preferences)) {
             throw new Error('Invalid input: courseAssignments and preferences must be arrays');
         }
@@ -90,6 +94,27 @@ class RoutineGenerator {
 
     async isSlotAvailable(timeSlot, day, teacherId, semester, section, courseId) {
         try {
+            // Check for UNAVAILABLE preference first
+            const preference = this.preferences.find(p => 
+                p.teacher_id.toString() === teacherId.toString() &&
+                p.course_id.toString() === courseId.toString() &&
+                p.day_of_week === day &&
+                p.preferred_time_slot === timeSlot &&
+                p.preference_level === 'UNAVAILABLE'
+            );
+
+            if (preference) {
+                this.conflicts.push({
+                    type: 'preference',
+                    description: 'Teacher marked as unavailable for this slot',
+                    teacher_id: teacherId,
+                    course_id: courseId,
+                    day,
+                    time_slot: timeSlot
+                });
+                return false;
+            }
+
             // Check teacher's availability preference
             const preferenceLevel = this.getTeacherPreference(teacherId, timeSlot, day);
             if (preferenceLevel === this.preferenceWeights.UNAVAILABLE) {
@@ -220,7 +245,6 @@ class RoutineGenerator {
         let bestSlot = null;
         let highestScore = -1;
 
-        // Randomize the order of days and time slots to increase variety
         const shuffledDays = [...WORKING_DAYS].sort(() => Math.random() - 0.5);
         const shuffledSlots = [...TIME_SLOTS].sort(() => Math.random() - 0.5);
 
@@ -238,23 +262,40 @@ class RoutineGenerator {
                 if (isAvailable) {
                     let slotScore = 0;
                     
-                    // Factor 1: Teacher's preference (weight: 3)
-                    const preferenceLevel = this.getTeacherPreference(teacherId, slot.id, day);
-                    slotScore += preferenceLevel * 3;
-                    
-                    // Factor 2: Daily distribution (weight: 2)
+                    // Find specific preference for this course
+                    const preference = this.preferences.find(p => 
+                        p.teacher_id.toString() === teacherId.toString() &&
+                        p.course_id.toString() === courseId.toString() &&
+                        p.day_of_week === day &&
+                        p.preferred_time_slot === slot.id
+                    );
+
+                    // Score based on preference level (weight: 5)
+                    if (preference) {
+                        switch (preference.preference_level) {
+                            case 'HIGH':
+                                slotScore += 5 * 3;
+                                break;
+                            case 'MEDIUM':
+                                slotScore += 5 * 2;
+                                break;
+                            case 'LOW':
+                                slotScore += 5 * 1;
+                                break;
+                            case 'UNAVAILABLE':
+                                slotScore -= 10; // Heavy penalty for unavailable slots
+                                break;
+                        }
+                    }
+
+                    // Factor 2: Daily distribution (weight: 3)
                     const dailyKey = `${semester}-${section}-${day}`;
                     const dailyCount = this.dailyClassCount.get(dailyKey) || 0;
-                    slotScore += (5 - dailyCount) * 2;
-                    
-                    // Factor 3: Time of day preference (weight: 1)
-                    const timeWeight = this.getTimeOfDayWeight(slot.id);
-                    slotScore += timeWeight;
+                    slotScore += (5 - dailyCount) * 3;
 
-                    // Factor 4: Section distribution (weight: 3)
-                    // Discourage using same slots as other sections
+                    // Factor 3: Section distribution (weight: 2)
                     const otherSections = ['A', 'B', 'C'].filter(s => s !== section);
-                    let sectionScore = 3;
+                    let sectionScore = 2;
                     for (const otherSection of otherSections) {
                         const otherSectionKey = `${semester}-${otherSection}-${day}-${slot.id}`;
                         if (this.schedule.has(otherSectionKey)) {
@@ -263,7 +304,16 @@ class RoutineGenerator {
                     }
                     slotScore += sectionScore;
 
-                    // Factor 5: Random factor to increase variety (weight: 1)
+                    // Factor 4: Teacher consecutive classes (weight: 2)
+                    const teacherKey = `${teacherId}-${day}`;
+                    const teacherDailyClasses = Array.from(this.schedule.entries())
+                        .filter(([key, value]) => 
+                            key.includes(teacherId.toString()) && 
+                            key.includes(day)
+                        ).length;
+                    slotScore += (3 - teacherDailyClasses) * 2;
+
+                    // Factor 5: Random factor for variety (weight: 1)
                     slotScore += Math.random();
 
                     if (slotScore > highestScore) {
