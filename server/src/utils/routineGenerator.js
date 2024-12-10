@@ -1,14 +1,14 @@
 const { TIME_SLOTS, WORKING_DAYS } = require('../constants/timeSlots');
-const { PREFERENCE_WEIGHTS, TIME_OF_DAY_WEIGHTS } = require('../constants/preferences');
 const ClassSchedule = require('../models/ClassSchedule');
 const Course = require('../models/Course');
 
 class RoutineGenerator {
     constructor(courseAssignments, preferences) {
-        console.log('RoutineGenrator Initialized with', {
+        console.log('RoutineGenerator Initialized with', {
             assignments: courseAssignments.length,
             preferences: preferences.length
         });
+        
         if (!Array.isArray(courseAssignments) || !Array.isArray(preferences)) {
             throw new Error('Invalid input: courseAssignments and preferences must be arrays');
         }
@@ -20,15 +20,12 @@ class RoutineGenerator {
         this.teacherSchedule = new Map();
         this.teacherClassCount = new Map();
         this.conflicts = [];
-        this.preferenceWeights = PREFERENCE_WEIGHTS;
-        this.timeOfDayWeights = TIME_OF_DAY_WEIGHTS;
 
         // Validate input data
         this.validateInputData();
     }
 
     validateInputData() {
-        // Validate course assignments
         this.courseAssignments.forEach((assignment, index) => {
             if (!assignment.teacher_id || !assignment.course_id) {
                 throw new Error(`Invalid course assignment at index ${index}: missing teacher_id or course_id`);
@@ -36,13 +33,11 @@ class RoutineGenerator {
             if (!assignment.sections || !Array.isArray(assignment.sections)) {
                 throw new Error(`Invalid sections for assignment at index ${index}`);
             }
-            // Validate that referenced objects are properly populated
             if (!assignment.teacher_id._id || !assignment.course_id._id) {
                 throw new Error(`Course assignment at index ${index} has unpopulated references`);
             }
         });
 
-        // Log initial state for debugging
         console.log('Initial state:', {
             totalAssignments: this.courseAssignments.length,
             totalPreferences: this.preferences.length,
@@ -62,7 +57,6 @@ class RoutineGenerator {
             );
         });
 
-        // Log initial teaching loads
         console.log('\nInitial Teaching Loads:');
         for (const [teacherId, count] of this.teacherClassCount) {
             const teacher = this.courseAssignments.find(
@@ -74,22 +68,28 @@ class RoutineGenerator {
         }
     }
 
-    getTeacherPreference(teacherId, timeSlot, day) {
-        const preference = this.preferences.find(p => 
-            p.teacher_id.toString() === teacherId.toString() &&
-            p.preferred_time_slot === timeSlot &&
-            p.day_of_week === day
-        );
+    sortAssignmentsByPriority() {
+        return [...this.courseAssignments].sort((a, b) => {
+            // First priority: Academic rank
+            const rankPriority = {
+                'Professor': 4,
+                'Associate Professor': 3,
+                'Assistant Professor': 2,
+                'Lecturer': 1
+            };
+            const rankDiff = rankPriority[b.teacher_id.academic_rank] - 
+                            rankPriority[a.teacher_id.academic_rank];
+            if (rankDiff !== 0) return rankDiff;
 
-        if (!preference) return this.preferenceWeights.LOW;
-        return this.preferenceWeights[preference.preference_level] || this.preferenceWeights.LOW;
-    }
-
-    getTimeOfDayWeight(timeSlot) {
-        const slotNumber = parseInt(timeSlot);
-        if (slotNumber <= 3) return this.timeOfDayWeights.MORNING;
-        if (slotNumber <= 6) return this.timeOfDayWeights.MIDDAY;
-        return this.timeOfDayWeights.AFTERNOON;
+            // Second priority: Total assigned classes
+            const teacherAId = a.teacher_id._id.toString();
+            const teacherBId = b.teacher_id._id.toString();
+            
+            const teacherAClasses = this.teacherClassCount.get(teacherAId) || 0;
+            const teacherBClasses = this.teacherClassCount.get(teacherBId) || 0;
+            
+            return teacherAClasses - teacherBClasses;
+        });
     }
 
     async isSlotAvailable(timeSlot, day, teacherId, semester, section, courseId) {
@@ -109,19 +109,6 @@ class RoutineGenerator {
                     description: 'Teacher marked as unavailable for this slot',
                     teacher_id: teacherId,
                     course_id: courseId,
-                    day,
-                    time_slot: timeSlot
-                });
-                return false;
-            }
-
-            // Check teacher's availability preference
-            const preferenceLevel = this.getTeacherPreference(teacherId, timeSlot, day);
-            if (preferenceLevel === this.preferenceWeights.UNAVAILABLE) {
-                this.conflicts.push({
-                    type: 'preference',
-                    description: 'Teacher marked as unavailable for this slot',
-                    teacher_id: teacherId,
                     day,
                     time_slot: timeSlot
                 });
@@ -188,14 +175,13 @@ class RoutineGenerator {
                 return false;
             }
 
-            // Strongly discourage same time slots for different sections
-            const otherSections = ['A', 'B', 'C'].filter(s => s !== section);
-            for (const otherSection of otherSections) {
-                const otherSectionKey = `${semester}-${otherSection}-${day}-${timeSlot}`;
-                if (this.schedule.has(otherSectionKey)) {
-                    // Allow parallel sections only for lab/sessional courses
-                    const course = await Course.findById(courseId);
-                    if (course && course.course_type === 'theory') {
+            // Check for parallel sections (theory courses)
+            const course = await Course.findById(courseId);
+            if (course && course.course_type === 'theory') {
+                const otherSections = ['A', 'B', 'C'].filter(s => s !== section);
+                for (const otherSection of otherSections) {
+                    const otherSectionKey = `${semester}-${otherSection}-${day}-${timeSlot}`;
+                    if (this.schedule.has(otherSectionKey)) {
                         this.conflicts.push({
                             type: 'parallel_section',
                             description: 'Theory course cannot be scheduled parallel with other sections',
@@ -215,30 +201,6 @@ class RoutineGenerator {
             console.error('Error checking slot availability:', error);
             return false;
         }
-    }
-
-    sortAssignmentsByPriority() {
-        return [...this.courseAssignments].sort((a, b) => {
-            // First priority: Academic rank
-            const rankPriority = {
-                'Professor': 4,
-                'Associate Professor': 3,
-                'Assistant Professor': 2,
-                'Lecturer': 1
-            };
-            const rankDiff = rankPriority[b.teacher_id.academic_rank] - 
-                                rankPriority[a.teacher_id.academic_rank];
-            if (rankDiff !== 0) return rankDiff;
-
-            // Second priority: Total assigned classes
-            const teacherAId = a.teacher_id._id.toString();
-            const teacherBId = b.teacher_id._id.toString();
-            
-            const teacherAClasses = this.teacherClassCount.get(teacherAId) || 0;
-            const teacherBClasses = this.teacherClassCount.get(teacherBId) || 0;
-            
-            return teacherAClasses - teacherBClasses;
-        });
     }
 
     async findBestTimeSlot(teacherId, semester, section, courseId) {
@@ -262,7 +224,7 @@ class RoutineGenerator {
                 if (isAvailable) {
                     let slotScore = 0;
                     
-                    // Find specific preference for this course
+                    // Find specific preference for this course-slot combination
                     const preference = this.preferences.find(p => 
                         p.teacher_id.toString() === teacherId.toString() &&
                         p.course_id.toString() === courseId.toString() &&
@@ -270,51 +232,42 @@ class RoutineGenerator {
                         p.preferred_time_slot === slot.id
                     );
 
-                    // Score based on preference level (weight: 5)
+                    // Score based on teacher's preference (primary factor)
                     if (preference) {
                         switch (preference.preference_level) {
                             case 'HIGH':
-                                slotScore += 5 * 3;
+                                slotScore += 100;
                                 break;
                             case 'MEDIUM':
-                                slotScore += 5 * 2;
+                                slotScore += 50;
                                 break;
                             case 'LOW':
-                                slotScore += 5 * 1;
+                                slotScore += 25;
                                 break;
                             case 'UNAVAILABLE':
-                                slotScore -= 10; // Heavy penalty for unavailable slots
+                                slotScore -= 1000;
                                 break;
                         }
+                    } else {
+                        // No preference specified, give neutral score
+                        slotScore += 10;
                     }
 
-                    // Factor 2: Daily distribution (weight: 3)
+                    // Factor 1: Daily class distribution (weight: 2)
                     const dailyKey = `${semester}-${section}-${day}`;
                     const dailyCount = this.dailyClassCount.get(dailyKey) || 0;
-                    slotScore += (5 - dailyCount) * 3;
+                    slotScore += (5 - dailyCount) * 2;
 
-                    // Factor 3: Section distribution (weight: 2)
-                    const otherSections = ['A', 'B', 'C'].filter(s => s !== section);
-                    let sectionScore = 2;
-                    for (const otherSection of otherSections) {
-                        const otherSectionKey = `${semester}-${otherSection}-${day}-${slot.id}`;
-                        if (this.schedule.has(otherSectionKey)) {
-                            sectionScore -= 1;
-                        }
-                    }
-                    slotScore += sectionScore;
-
-                    // Factor 4: Teacher consecutive classes (weight: 2)
-                    const teacherKey = `${teacherId}-${day}`;
+                    // Factor 2: Teacher's daily load (weight: 1)
                     const teacherDailyClasses = Array.from(this.schedule.entries())
                         .filter(([key, value]) => 
                             key.includes(teacherId.toString()) && 
                             key.includes(day)
                         ).length;
-                    slotScore += (3 - teacherDailyClasses) * 2;
+                    slotScore += (3 - teacherDailyClasses);
 
-                    // Factor 5: Random factor for variety (weight: 1)
-                    slotScore += Math.random();
+                    // Small random factor for tiebreaking (weight: 0.1)
+                    slotScore += Math.random() * 0.1;
 
                     if (slotScore > highestScore) {
                         highestScore = slotScore;
@@ -403,7 +356,6 @@ class RoutineGenerator {
                             }
 
                             try {
-                                // Create schedule entry
                                 const scheduleEntry = await this.createScheduleEntry(
                                     course._id,
                                     teacher._id,
@@ -414,7 +366,6 @@ class RoutineGenerator {
                                 );
 
                                 if (scheduleEntry) {
-                                    // Update tracking maps
                                     const teacherKey = `${teacher._id}-${slot.day}-${slot.timeSlot}`;
                                     const sectionKey = `${assignment.semester}-${section}-${slot.day}-${slot.timeSlot}`;
                                     const dailyKey = `${assignment.semester}-${section}-${slot.day}`;
@@ -439,12 +390,7 @@ class RoutineGenerator {
                                     });
                                 }
                             } catch (error) {
-                                console.error('Error creating schedule entry:', {
-                                    error: error.message,
-                                    course: course.course_code,
-                                    section,
-                                    slot
-                                });
+                                console.error('Error creating schedule entry:', error);
                                 continue;
                             }
                         }
@@ -462,11 +408,7 @@ class RoutineGenerator {
                         }
                     }
                 } catch (error) {
-                    console.error('Error processing assignment:', {
-                        error: error.message,
-                        course: course.course_code,
-                        teacher: teacher.full_name
-                    });
+                    console.error('Error processing assignment:', error);
                     continue;
                 }
             }
