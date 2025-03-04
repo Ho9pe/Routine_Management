@@ -1,17 +1,19 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
 import styles from './TeacherDashboardCourses.module.css';
 
+// TeacherDashboardCourses component
 export default function TeacherDashboardCourses() {
     const [assignedCourses, setAssignedCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
+    // Fetch assigned courses on component mount
     useEffect(() => {
         fetchAssignedCourses();
     }, []);
-
+    // Fetch assigned courses from the server
     const fetchAssignedCourses = async () => {
         try {
             const response = await fetch('/api/teachers/courses', {
@@ -33,17 +35,15 @@ export default function TeacherDashboardCourses() {
             setLoading(false);
         }
     };
-
+    // Group assignments by course
     const groupAssignmentsByCourse = (assignments) => {
         if (!Array.isArray(assignments)) {
             return [];
         }
-
         return assignments.reduce((acc, curr) => {
             const existingCourse = acc.find(item => 
                 item.course_id._id === curr.course_id._id
             );
-    
             if (existingCourse) {
                 existingCourse.sections = [...new Set([
                     ...existingCourse.sections,
@@ -58,12 +58,11 @@ export default function TeacherDashboardCourses() {
             return acc;
         }, []);
     };
-
+    // Render component
     if (loading) return <div className={styles.loading}>Loading...</div>;
     if (error) return <div className={styles.error}>{error}</div>;
-
     const groupedAssignments = groupAssignmentsByCourse(assignedCourses);
-
+    // Render component
     return (
         <div className={styles.dashboardCourses}>
             <div className={styles.header}>
@@ -77,7 +76,6 @@ export default function TeacherDashboardCourses() {
                     View All Courses
                 </Link>
             </div>
-
             <div className={styles.courseList}>
                 {groupedAssignments.length > 0 ? (
                     groupedAssignments.map(assignment => (

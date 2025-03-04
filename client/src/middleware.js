@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
+// Middleware function to check if user is authenticated and has the correct role to access certain routes
 export function middleware(request) {
     const token = request.cookies.get('token');
     const { pathname } = request.nextUrl;
     const userRole = request.cookies.get('user_role');
-
     // If user is logged in and tries to access login/register pages
     if (token && (pathname === '/login' || pathname === '/register')) {
         switch(userRole?.value) {
@@ -18,18 +18,15 @@ export function middleware(request) {
                 return NextResponse.redirect(new URL('/', request.url));
         }
     }
-
     // Public paths that don't require authentication
     const publicPaths = ['/', '/login', '/register'];
     if (publicPaths.includes(pathname)) {
         return NextResponse.next();
     }
-
     // Check for authentication
     if (!token) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
-
     // Role-based route protection
     if (pathname.startsWith('/admin') && userRole?.value !== 'admin') {
         return NextResponse.redirect(new URL('/', request.url));
@@ -40,10 +37,10 @@ export function middleware(request) {
     if (pathname.startsWith('/student') && userRole?.value !== 'student') {
         return NextResponse.redirect(new URL('/', request.url));
     }
-
     return NextResponse.next();
 }
 
+// Configuration for the middleware
 export const config = {
     matcher: [
         '/',

@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
+// Academic ranks for teachers
 const ACADEMIC_RANKS = ['Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer'];
-
+// Teacher schema
 const teacherSchema = new mongoose.Schema({
     teacher_id: {
         type: String,

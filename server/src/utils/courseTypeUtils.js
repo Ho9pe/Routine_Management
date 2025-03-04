@@ -4,7 +4,6 @@ const determineCourseType = (courseCode, courseName) => {
     const isEven = lastDigit % 2 === 0;
     const endsWithZero = lastDigit === 0;
     const nameIncludes = (str) => courseName.toLowerCase().includes(str.toLowerCase());
-
     if (endsWithZero) {
         if (nameIncludes('thesis')) {
             return 'thesis';
@@ -12,7 +11,6 @@ const determineCourseType = (courseCode, courseName) => {
             return 'project';
         }
     }
-    
     return isEven ? 'sessional' : 'theory';
 };
 

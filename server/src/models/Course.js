@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Schema for the Course model
 const courseSchema = new mongoose.Schema({
     course_code: {
         type: String,
@@ -58,11 +59,9 @@ const courseSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 // Compound indexes for efficient querying
 courseSchema.index({ department: 1, semester: 1, course_type: 1 });
 courseSchema.index({ course_code: 1, department: 1 }, { unique: true });
-
 // Course type determination logic
 courseSchema.pre('save', function(next) {
     const codeNumber = this.course_code.split('-')[1];
@@ -70,7 +69,6 @@ courseSchema.pre('save', function(next) {
     const isEven = lastDigit % 2 === 0;
     const endsWithZero = lastDigit === 0;
     const nameIncludes = (str) => this.course_name.toLowerCase().includes(str.toLowerCase());
-
     if (endsWithZero) {
         if (nameIncludes('thesis')) {
             this.course_type = 'thesis';
@@ -82,7 +80,6 @@ courseSchema.pre('save', function(next) {
     } else {
         this.course_type = 'theory';
     }
-
     next();
 });
 

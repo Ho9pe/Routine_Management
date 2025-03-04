@@ -1,9 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
+
 import { useAuth } from '@/context/AuthContext';
 import styles from './AdminDashboard.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 
+// AdminDashboard component
 export default function AdminDashboard() {
     const { user } = useAuth();
     const [profileData, setProfileData] = useState(null);
@@ -14,13 +16,13 @@ export default function AdminDashboard() {
     const [isResettingPassword, setIsResettingPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-
+    // Fetch admin profile data on component mount
     useEffect(() => {
         if (user) {
             fetchAdminProfile();
         }
     }, [user]);
-
+    // Fetch admin profile data
     const fetchAdminProfile = async () => {
         try {
             const response = await fetch('/api/admin/profile', {
@@ -29,7 +31,6 @@ export default function AdminDashboard() {
                 }
             });
             const data = await response.json();
-            
             if (response.ok) {
                 setProfileData(data);
             } else {
@@ -41,12 +42,12 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
-
+    // Handle edit profile
     const handleStartEdit = () => {
         setEditFormData({ ...profileData });
         setIsEditing(true);
     };
-
+    // Handle cancel edit
     const handleCancel = () => {
         setEditFormData(null);
         setIsEditing(false);
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
         setNewPassword('');
         setConfirmPassword('');
     };
-
+    // Handle form input change
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name.includes('.')) {
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
             }));
         }
     };
-
+    // Handle password reset
     const handlePasswordReset = async (e) => {
         e.preventDefault();
         if (newPassword.length < 6) {
@@ -93,9 +94,7 @@ export default function AdminDashboard() {
                 },
                 body: JSON.stringify({ newPassword })
             });
-            
             const data = await response.json();
-            
             if (response.ok) {
                 setError('');
                 setIsResettingPassword(false);
@@ -109,7 +108,7 @@ export default function AdminDashboard() {
             setError('Failed to reset password. Please try again.');
         }
     };
-
+    // Handle profile update
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
@@ -121,7 +120,6 @@ export default function AdminDashboard() {
                 },
                 body: JSON.stringify(editFormData)
             });
-            
             const data = await response.json();
             if (response.ok) {
                 setProfileData(data);
@@ -134,13 +132,12 @@ export default function AdminDashboard() {
             setError('Failed to update profile');
         }
     };
-
-    if (loading) return <div className={styles.loading}>Loading...</div>;
-
+    if (loading) 
+        return <div className={styles.loading}>Loading...</div>;
+    // Render admin dashboard
     return (
         <div className={styles.dashboard}>
             <h2 className={styles.title}>Admin Dashboard</h2>
-            
             {error && (
                 <ErrorMessage 
                     message={error}
@@ -148,7 +145,6 @@ export default function AdminDashboard() {
                     duration={10000}
                 />
             )}
-
             <div className={styles.profileCard}>
                 <h3 className={styles.subtitle}>Admin Profile</h3>
                 {isEditing ? (
@@ -231,7 +227,6 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 )}
-
                 {isResettingPassword && (
                     <form onSubmit={handlePasswordReset} className={styles.passwordResetForm}>
                         <div className={styles.formGroup}>

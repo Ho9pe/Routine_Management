@@ -1,20 +1,20 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
-import styles from './Navigation.module.css';
 
+import styles from './Navigation.module.css';
+import { useAuth } from '@/context/AuthContext';
+
+// Navigation component
 export default function Navigation() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
-
     const isActive = (path) => pathname === path;
-
     const handleLogout = () => {
         logout();
     };
-
+    // Render navigation links based on user role
     const renderAdminNav = () => (
         <div className={styles.navLinks}>
             <Link href="/admin/panel" className={isActive('/admin/panel') ? styles.active : ''}>
@@ -31,7 +31,6 @@ export default function Navigation() {
             </button>
         </div>
     );
-
     const renderTeacherNav = () => (
         <div className={styles.navLinks}>
             <Link href="/teacher/courses" className={isActive('/teacher/courses') ? styles.active : ''}>
@@ -48,7 +47,6 @@ export default function Navigation() {
             </button>
         </div>
     );
-
     const renderStudentNav = () => (
         <div className={styles.navLinks}>
             <Link href="/student/courses" className={isActive('/student/courses') ? styles.active : ''}>
@@ -65,7 +63,7 @@ export default function Navigation() {
             </button>
         </div>
     );
-
+    // Render public navigation links
     const renderPublicNav = () => (
         <div className={styles.navLinks}>
             <Link 
@@ -84,7 +82,7 @@ export default function Navigation() {
             </Link>
         </div>
     );
-
+    // Render navigation component
     return (
         <nav className={styles.nav}>
             <Link href="/" className={styles.logoContainer}>

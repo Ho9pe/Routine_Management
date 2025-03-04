@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 const auth = require('../middleware/auth');
 const TeacherPreference = require('../models/TeacherPreference');
 const TeacherCourseAssignment = require('../models/TeacherCourseAssignment');

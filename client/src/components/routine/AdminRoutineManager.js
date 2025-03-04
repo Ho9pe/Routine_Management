@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
+
 import RoutineDisplay from './RoutineDisplay';
-import styles from './AdminRoutineManager.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 import { semesterToYear } from '@/lib/semesterMapping';
+import styles from './AdminRoutineManager.module.css';
 
+// AdminRoutineManager component for managing the routine
 export default function AdminRoutineManager() {
     const [generating, setGenerating] = useState(false);
     const [error, setError] = useState('');
@@ -18,23 +20,23 @@ export default function AdminRoutineManager() {
     const [key, setKey] = useState(0);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [confirmSuccess, setConfirmSuccess] = useState(false);
-    
+    // Fetch routine status on component mount
     useEffect(() => {
         fetchRoutineStatus();
     }, []);
-
+    // Show routine if it exists
     useEffect(() => {
         if (routineStatus?.hasRoutine) {
             setShowRoutine(true);
         }
     }, [routineStatus]);
-
+    // Regenerate routine on section or semester change
     useEffect(() => {
         if (selectedSection && selectedSemester) {
             setKey(prevKey => prevKey + 1);
         }
     }, [selectedSection, selectedSemester]);
-
+    // Add/remove overlay-active class on body when confirm dialog is shown/hidden
     useEffect(() => {
         if (showConfirmDialog) {
             document.documentElement.classList.add('overlay-active');
@@ -43,13 +45,12 @@ export default function AdminRoutineManager() {
             document.documentElement.classList.remove('overlay-active');
             document.body.classList.remove('overlay-active');
         }
-
         return () => {
             document.documentElement.classList.remove('overlay-active');
             document.body.classList.remove('overlay-active');
         };
     }, [showConfirmDialog]);
-
+    // Fetch routine status from Express server
     const fetchRoutineStatus = async () => {
         try {
             const response = await fetch('http://localhost:5000/api/schedule/admin/status', {
@@ -69,20 +70,18 @@ export default function AdminRoutineManager() {
             console.error('Error fetching routine status:', error);
         }
     };
-    
+    // Generate routine by making a POST request to Express server
     const handleGenerateRoutine = async () => {
-        if (routineStatus?.hasRoutine && !showConfirmDialog) {
+        if (!showConfirmDialog) {
             setShowConfirmDialog(true);
             return;
         }
-    
         try {
             setGenerating(true);
             setError('');
             setSuccess('');
             setGenerationResult(null);
-            setShowRoutine(false);
-            
+            setShowRoutine(false);   
             // Make request directly to Express server
             const response = await fetch('http://localhost:5000/api/schedule/admin/generate', {
                 method: 'POST',
@@ -93,20 +92,16 @@ export default function AdminRoutineManager() {
                 mode: 'cors',
                 credentials: 'include'
             });
-
             const data = await response.json();
-            
             if (response.ok && data.success) {
                 setGenerationResult({
                     scheduledCourses: data.scheduledCourses,
                     skippedCourses: data.skippedCourses
                 });
                 setSuccess('Routine generated successfully!');
-                
                 await fetchRoutineStatus();
                 setShowRoutine(true);
                 setKey(prevKey => prevKey + 1);
-                
                 setConfirmSuccess(true);
                 setTimeout(() => {
                     setShowConfirmDialog(false);
@@ -123,10 +118,9 @@ export default function AdminRoutineManager() {
             setGenerating(false);
         }
     };
-    
+    // Render generation summary
     const renderGenerationSummary = () => {
         if (!generationResult) return null;
-
         return (
             <div className={styles.generationSummary}>
                 <h3>Generation Summary</h3>
@@ -150,7 +144,6 @@ export default function AdminRoutineManager() {
                         </span>
                     </div>
                 </div>
-
                 {showSkippedCourses && generationResult.skippedCourses?.length > 0 && (
                     <div className={`${styles.skippedCourses} ${styles.slideDown}`}>
                         <div className={styles.skippedCoursesHeader}>
@@ -175,7 +168,7 @@ export default function AdminRoutineManager() {
             </div>
         );
     };
-
+    // Render the component
     return (
         <div className={styles.adminRoutine}>
             <div className={styles.header}>
@@ -256,7 +249,6 @@ export default function AdminRoutineManager() {
                     )}
                 </div>
             )}
-
             {showConfirmDialog && (
                 <div className={styles.confirmOverlay}>
                     <div className={styles.confirmDialog}>

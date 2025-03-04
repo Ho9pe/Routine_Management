@@ -1,13 +1,15 @@
 'use client';
-import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { useAuth } from '@/context/AuthContext';
+
+// AuthLayout component
 export default function AuthLayout({ children }) {
     const { user, loading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
-
+    // Redirection based on user role/permissions
     useEffect(() => {
         if (!loading && !user) {
             router.push('/login');
@@ -24,10 +26,8 @@ export default function AuthLayout({ children }) {
             }
         }
     }, [user, loading, router, pathname]);
-
     if (loading) {
         return <div>Loading...</div>;
     }
-
     return user ? children : null;
 }

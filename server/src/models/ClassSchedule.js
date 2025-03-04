@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+
 const { TIME_SLOTS, WORKING_DAYS } = require('../constants/timeSlots');
 
+// Schema for the ClassSchedule model
 const classScheduleSchema = new mongoose.Schema({
     course_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -52,7 +54,6 @@ const classScheduleSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 // Index to prevent teacher double-booking
 classScheduleSchema.index(
     {
@@ -64,7 +65,6 @@ classScheduleSchema.index(
     },
     { unique: true }
 );
-
 // Index to prevent section double-booking
 classScheduleSchema.index(
     {

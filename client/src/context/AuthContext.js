@@ -2,11 +2,11 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext();
-
+// AuthContext.Provider
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-
+    // Check if user is logged in
     useEffect(() => {
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('user');
@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
         }
         setLoading(false);
     }, []);
-
+    // Login function
     const login = async (data) => {
         try {
             if (data.token && data.user) {
@@ -33,14 +33,12 @@ export function AuthProvider({ children }) {
                 setUser(data.user);
                 return { success: true };
             }
-    
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
             const responseData = await res.json();
-    
             if (res.ok) {
                 localStorage.setItem('token', responseData.token);
                 localStorage.setItem('user', JSON.stringify(responseData.user));
@@ -56,7 +54,7 @@ export function AuthProvider({ children }) {
             return { success: false, message: 'Connection error' };
         }
     };
-
+    // Logout function
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -65,7 +63,7 @@ export function AuthProvider({ children }) {
         document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         setUser(null);
     };
-
+    // Update user data
     const updateUserData = (newData) => {
         if (user) {
             const updatedUser = { ...user, ...newData };
@@ -73,7 +71,7 @@ export function AuthProvider({ children }) {
             setUser(updatedUser);
         }
     };
-
+    // Return provider
     return (
         <AuthContext.Provider value={{ user, login, logout, loading, updateUserData }}>
             {children}

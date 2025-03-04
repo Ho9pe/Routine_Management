@@ -11,7 +11,6 @@ export const semesterToYear = (semester) => {
     };
     return mapping[semester] || semester;
 };
-
 export const yearToSemester = (year) => {
     const mapping = {
         '1st Year Odd (1-1)': 1,
@@ -25,7 +24,6 @@ export const yearToSemester = (year) => {
     };
     return mapping[year] || year;
 };
-
 export const semesterOptions = [
     { value: 1, label: '1st Year Odd (1-1)' },
     { value: 2, label: '1st Year Even (1-2)' },

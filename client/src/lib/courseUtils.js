@@ -1,9 +1,7 @@
 export const getSemesterFromCourseCode = (courseCode) => {
     if (!courseCode) return null;
-    
     const match = courseCode.match(/[A-Z]+-(\d{2})\d{2}/);
     if (!match) return null;
-    
     const yearSemester = match[1];
     const mapping = {
         '11': 1,
@@ -15,6 +13,5 @@ export const getSemesterFromCourseCode = (courseCode) => {
         '41': 7,
         '42': 8
     };
-    
     return mapping[yearSemester] || null;
 };

@@ -1,6 +1,6 @@
-// resetDB.js
 require('dotenv').config();
 const mongoose = require('mongoose');
+
 const Student = require('../src/models/Student');
 const Teacher = require('../src/models/Teacher');
 const Course = require('../src/models/Course');
@@ -9,6 +9,7 @@ const TeacherPreference = require('../src/models/TeacherPreference');
 const ClassSchedule = require('../src/models/ClassSchedule');
 const RoutineSession = require('../src/models/RoutineSession');
 
+// Reset the database
 async function resetDatabase() {
     try {
         // Connect to MongoDB
@@ -17,7 +18,6 @@ async function resetDatabase() {
             connectTimeoutMS: 10000
         });
         console.log('Connected to MongoDB');
-
         // Drop all collections
         await Promise.all([
             Student.deleteMany({}),
@@ -28,7 +28,6 @@ async function resetDatabase() {
             ClassSchedule.deleteMany({}),
             RoutineSession.deleteMany({})
         ]);
-
         console.log('Successfully reset all collections');
     } catch (error) {
     console.error('Error resetting database:', error);
@@ -38,19 +37,16 @@ async function resetDatabase() {
     console.log('Disconnected from MongoDB');
     }
 }
-
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
     process.exit(1);
 });
-
 // Handle unhandled promise rejections 
 process.on('unhandledRejection', (error) => {
     console.error('Unhandled Rejection:', error);
     process.exit(1);
 });
-
 // Run if called directly
 if (require.main === module) {
     resetDatabase()

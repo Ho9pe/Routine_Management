@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
 import { useAuth } from '@/context/AuthContext';
 import { TIME_SLOTS, WORKING_DAYS } from '../../../../server/src/constants/timeSlots';
-import styles from './RoutineDisplay.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 import { semesterOptions, semesterToYear } from '@/lib/semesterMapping';
+import styles from './RoutineDisplay.module.css';
 
+// Display the routine for the selected semester and section
 export default function RoutineDisplay({ selectedSection: initialSection, selectedSemester }) {
     const { user, updateUserData } = useAuth();
     const [schedule, setSchedule] = useState([]);
@@ -17,14 +19,12 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
     const [isUpdatingSemester, setIsUpdatingSemester] = useState(false);
     const [newSemester, setNewSemester] = useState('');
     const [success, setSuccess] = useState('');
-
     // Fetch student info only once when component mounts
     useEffect(() => {
         if (user?.role === 'student') {
             fetchStudentInfo();
         }
     }, []);
-
     // Fetch schedule when dependencies change
     useEffect(() => {
         const fetchData = async () => {
@@ -36,10 +36,9 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 await fetchSchedule();
             }
         };
-    
         fetchData();
     }, [studentInfo?.semester, selectedSemester, selectedSection, user?.role]);
-
+    // Fetch student info
     const fetchStudentInfo = async () => {
         try {
             const response = await fetch('/api/students/profile', {
@@ -61,7 +60,7 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
             setError('Failed to fetch student info');
         }
     };
-
+    // Update semester
     const handleUpdateSemester = async () => {
         try {
             setLoading(true);
@@ -75,7 +74,6 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                     semester: parseInt(newSemester)
                 })
             });
-    
             const data = await response.json();
             if (response.ok) {
                 setStudentInfo(prev => ({
@@ -99,7 +97,7 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
             setLoading(false);
         }
     };
-
+    // Fetch schedule
     const fetchSchedule = async () => {
         try {
             setLoading(true);
@@ -108,14 +106,12 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 section: selectedSection,
                 role: user?.role
             });
-    
             let url = '/api/schedule/student/routine';
             if (user?.role === 'teacher') {
                 url = '/api/schedule/teacher/routine';
             } else if (selectedSection && selectedSemester) {
                 url = `/api/schedule/admin/routine?semester=${selectedSemester}&section=${selectedSection}`;
             }
-    
             const response = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -126,12 +122,10 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 // Force fetch new data
                 cache: 'no-store'
             });
-            
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to fetch schedule');
             }
-    
             setSchedule(data);
             setError('');
         } catch (error) {
@@ -141,13 +135,12 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
             setLoading(false);
         }
     };
-
+    // Get class session for a given time slot and day
     const getClassForSlot = (timeSlot, day) => {
         const classSession = schedule.find(s => 
             s.time_slot === timeSlot && 
             s.day_of_week === day
         );
-        
         if (classSession) {
             console.log('Found class session:', {
                 timeSlot,
@@ -156,13 +149,11 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 section: classSession.section
             });
         }
-        
         return classSession;
     };
-
+    // Render header cells
     const renderHeaderCells = () => {
         let cells = [];
-        
         TIME_SLOTS.forEach(slot => {
             if (slot.id === '3' || slot.id === '6') {
                 cells.push(
@@ -191,16 +182,13 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                 );
             }
         });
-        
         return cells;
     };
-
+    // Render row cells
     const renderRowCells = (day) => {
         let cells = [];
-        
         TIME_SLOTS.forEach(slot => {
             const classSession = getClassForSlot(slot.id, day);
-            
             const cellContent = classSession ? (
                 <div className={`${styles.classBlock} ${styles[classSession.course_id.course_type]}`}>
                     <div className={styles.courseCode}>
@@ -223,27 +211,22 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                     </div>
                 </div>
             ) : null;
-
             cells.push(
                 <td key={`cell-${day}-${slot.id}`} className={styles.scheduleCell}>
                     {cellContent}
                 </td>
             );
-
             if (slot.id === '3' || slot.id === '6') {
                 cells.push(
                     <td key={`break-${day}-${slot.id}`} className={styles.breakCell}></td>
                 );
             }
         });
-        
         return cells;
     };
-
     if (loading && user?.role === 'student' && studentInfo?.semester) {
         return <div className={styles.loading}>Loading...</div>;
     }
-
     if (loading && user?.role === 'student' && !studentInfo?.semester) {
         return (
             <div className={styles.noSemesterContainer}>
@@ -258,7 +241,7 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
             </div>
         );
     }
-
+    // Render routine
     return (
         <div className={styles.routineContainer}>
             {error && (
@@ -267,13 +250,11 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                     onDismiss={() => setError('')}
                 />
             )}
-
             {success && (
                 <div className={styles.successMessage}>
                     {success}
                 </div>
             )}
-
             {user?.role === 'student' && studentInfo && (
                 <div className={styles.studentInfo}>
                     <div className={styles.semesterInfo}>
@@ -328,7 +309,6 @@ export default function RoutineDisplay({ selectedSection: initialSection, select
                     <p>Section: {selectedSection}</p>
                 </div>
             )}
-
             <div className={styles.tableWrapper}>
                 <table className={styles.routineTable}>
                     <thead>

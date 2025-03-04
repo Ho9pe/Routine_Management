@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
 import { useAuth } from '@/context/AuthContext';
 import styles from './LoginForm.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 
+// LoginForm component
 export default function LoginForm() {
     const router = useRouter();
     const { login } = useAuth();
@@ -15,7 +17,6 @@ export default function LoginForm() {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -23,18 +24,16 @@ export default function LoginForm() {
             [name]: value
         }));
     };
-
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
-    
         if (!formData.role) {
             setError('Please select a role');
             setLoading(false);
             return;
         }
-    
         try {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
@@ -43,9 +42,7 @@ export default function LoginForm() {
                 },
                 body: JSON.stringify(formData)
             });
-    
             const data = await response.json();
-    
             if (response.ok) {
                 if (data.user.role !== formData.role) {
                     setError(`Invalid credentials for ${formData.role} role`);
@@ -67,19 +64,16 @@ export default function LoginForm() {
             setLoading(false);
         }
     };
-
     return (
         <div className={styles.loginContainer}>
             <div className={styles.loginCard}>
-                <h2>Login</h2>
-                
+                <h2>Login</h2>            
                 {error && (
                     <ErrorMessage 
                         message={error}
                         onDismiss={() => setError('')}
                     />
                 )}
-
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.formGroup}>
                         <label>Role</label>
@@ -95,7 +89,6 @@ export default function LoginForm() {
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-
                     <div className={styles.formGroup}>
                         <label>Email</label>
                         <input
@@ -106,7 +99,6 @@ export default function LoginForm() {
                             required
                         />
                     </div>
-
                     <div className={styles.formGroup}>
                         <label>Password</label>
                         <input
@@ -117,7 +109,6 @@ export default function LoginForm() {
                             required
                         />
                     </div>
-
                     <button 
                         type="submit" 
                         className={styles.submitButton}

@@ -14,7 +14,6 @@ router.get('/', auth, async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-
 // Add course (admin only)
 router.post('/', auth, roleCheck(['admin']), async (req, res) => {
     try {
@@ -26,7 +25,6 @@ router.post('/', auth, roleCheck(['admin']), async (req, res) => {
             semester,
             department 
         } = req.body;
-
         const course = new Course({
             course_code,
             course_name,
@@ -36,7 +34,6 @@ router.post('/', auth, roleCheck(['admin']), async (req, res) => {
             department
             // course_type will be automatically determined by the schema pre-save hook
         });
-
         await course.save();
         res.status(201).json(course);
     } catch (error) {
@@ -46,7 +43,6 @@ router.post('/', auth, roleCheck(['admin']), async (req, res) => {
         });
     }
 });
-
 // Update course (admin only)
 router.put('/:id', auth, roleCheck(['admin']), async (req, res) => {
     try {
@@ -63,7 +59,6 @@ router.put('/:id', auth, roleCheck(['admin']), async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-
 // Delete course (admin only)
 router.delete('/:id', auth, roleCheck(['admin']), async (req, res) => {
     try {

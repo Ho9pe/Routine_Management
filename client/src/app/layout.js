@@ -3,6 +3,7 @@ import Navigation from '@/components/common/Navigation';
 import PageTransition from '@/components/common/PageTransition';
 import './globals.css';
 
+// Metadata for the app
 export const metadata = {
     title: 'University Routine Manager',
     description: 'Manage your university routine efficiently',
@@ -10,7 +11,7 @@ export const metadata = {
         icon: '/favicon.ico'
     },
 };
-
+// Layout component
 export default function RootLayout({ children }) {
     return (
         <html lang="en">

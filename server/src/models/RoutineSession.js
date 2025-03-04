@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Schema for the RoutineSession model
 const routineSessionSchema = new mongoose.Schema({
     academic_year: {
         type: String,

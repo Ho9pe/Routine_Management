@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Teacher course assignment schema
 const teacherCourseAssignmentSchema = new mongoose.Schema({
     teacher_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -31,14 +32,12 @@ const teacherCourseAssignmentSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 // Remove the old index if it exists
 if (teacherCourseAssignmentSchema.indexes()) {
     teacherCourseAssignmentSchema.indexes().forEach(index => {
         teacherCourseAssignmentSchema.index(index[0], { unique: false });
     });
 }
-
 // Add a new compound index that includes sections
 teacherCourseAssignmentSchema.index(
     {
