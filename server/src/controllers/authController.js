@@ -1,9 +1,11 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const Admin = require('../models/Admin');
 
+// Register user
 const register = async (req, res) => {
     try {
         const { 
@@ -17,21 +19,16 @@ const register = async (req, res) => {
             academic_rank,
             contact_info
         } = req.body;
-
         console.log('Registration request:', req.body);
-
         // Check if email already exists in either collection
         const studentExists = await Student.findOne({ email });
         const teacherExists = await Teacher.findOne({ 'contact_info.email': email });
-
         if (studentExists || teacherExists) {
             return res.status(400).json({ message: 'Email already exists' });
         }
-
         // Hash password
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password, salt);
-
         // Create user based on role
         if (role === 'student') {
             // Check if student ID already exists
@@ -39,7 +36,6 @@ const register = async (req, res) => {
             if (studentIdExists) {
                 return res.status(400).json({ message: 'Student ID already exists' });
             }
-
             const student = new Student({
                 full_name,
                 student_roll,
@@ -56,7 +52,6 @@ const register = async (req, res) => {
             if (teacherIdExists) {
                 return res.status(400).json({ message: 'Teacher ID already exists' });
             }
-
             const teacher = new Teacher({
                 teacher_id,
                 full_name,
@@ -72,7 +67,6 @@ const register = async (req, res) => {
             await teacher.save();
             console.log('Teacher saved:', teacher);
         }
-
         res.status(201).json({ message: 'Registration successful! Please login.' });
     } catch (error) {
         console.error('Registration error:', error);
@@ -83,7 +77,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password, role } = req.body;
-        
         let user;
         // Check based on requested role
         switch(role) {
@@ -99,17 +92,14 @@ const login = async (req, res) => {
             default:
                 return res.status(400).json({ message: 'Invalid role' });
         }
-
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-
         // Validate password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-
         // Generate JWT token
         const token = jwt.sign(
             { 
@@ -124,7 +114,6 @@ const login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
-
         // Return user data based on role
         if (role === 'admin') {
             res.json({

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+
 const { TIME_SLOTS, WORKING_DAYS } = require('../constants/timeSlots');
 
+// Schema for the TeacherPreference model
 const teacherPreferenceSchema = new mongoose.Schema({
     teacher_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -48,10 +50,8 @@ const teacherPreferenceSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 // Remove any existing indexes
 teacherPreferenceSchema.index({}, { unique: false });
-
 // Add new compound index for unique preferences per time slot
 teacherPreferenceSchema.index(
     { 
@@ -67,7 +67,6 @@ teacherPreferenceSchema.index(
         name: 'unique_teacher_course_preference'
     }
 );
-
 // Add pre-save middleware for validation
 teacherPreferenceSchema.pre('save', function(next) {
     console.log('Pre-save validation:', {
@@ -82,5 +81,4 @@ teacherPreferenceSchema.pre('save', function(next) {
 });
 
 const TeacherPreference = mongoose.model('TeacherPreference', teacherPreferenceSchema);
-
 module.exports = TeacherPreference;

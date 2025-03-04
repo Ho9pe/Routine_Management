@@ -1,11 +1,11 @@
 // server/src/config/auth.js
 const jwt = require('jsonwebtoken');
 
+// Auth configuration
 const authConfig = {
     JWT_SECRET: process.env.JWT_SECRET,
     JWT_EXPIRE: '24h',
     COOKIE_EXPIRE: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-
     // Generate JWT Token
     generateToken: (userId, role) => {
         return jwt.sign(
@@ -14,7 +14,6 @@ const authConfig = {
             { expiresIn: '24h' }
         );
     },
-
     // Cookie options
     cookieOptions: {
         httpOnly: true,
@@ -22,17 +21,14 @@ const authConfig = {
         sameSite: 'strict',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     },
-
     // Password reset token expiry
     RESET_TOKEN_EXPIRE: 10 * 60 * 1000, // 10 minutes
-
     // Role levels for authorization
     roles: {
         ADMIN: 'admin',
         TEACHER: 'teacher',
         STUDENT: 'student'
     },
-
     // Validation constants
     validation: {
         PASSWORD_MIN_LENGTH: 6,

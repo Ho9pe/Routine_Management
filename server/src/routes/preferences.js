@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
+
 const auth = require('../middleware/auth');
 const TeacherPreference = require('../models/TeacherPreference');
 const TeacherCourseAssignment = require('../models/TeacherCourseAssignment');
-const { PREFERENCE_LEVELS } = require('../constants/preferences');
 const { TIME_SLOTS } = require('../constants/timeSlots');
 
 // Get teacher preferences with course details

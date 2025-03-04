@@ -2,6 +2,7 @@ import styles from './page.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
 
+// Home page component
 export default function Home() {
   return (
     <div className={styles.container}>
@@ -34,7 +35,6 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        
         <div className={styles.features}>
           <div className={styles.featuresGrid}>
             <div className={styles.feature}>
@@ -50,7 +50,6 @@ export default function Home() {
               Register as Student →
               </Link>
             </div>
-
             <div className={styles.feature}>
               <div className={styles.featureIcon}>👨‍🏫</div>
               <h2>For Teachers</h2>
@@ -76,7 +75,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
         <div className={styles.statsSection}>
           <h2>Platform Statistics</h2>
           <div className={styles.statsGrid}>
@@ -102,7 +100,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
         <div className={styles.infoSectionWrapper}>
           <div className={styles.infoSection}>
             <div className={styles.infoCard}>

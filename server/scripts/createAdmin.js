@@ -1,8 +1,10 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+
 const Admin = require('../src/models/Admin');
 
+// Create default admin
 async function createDefaultAdmin() {
     let connection;
     try {
@@ -11,19 +13,15 @@ async function createDefaultAdmin() {
             connectTimeoutMS: 10000
         });
         console.log('Connected to MongoDB');
-        
         // Check if admin already exists
         const adminExists = await Admin.findOne({ email: 'admin@ruet.ac.bd' });
-        
         if (adminExists) {
             console.log('Admin already exists');
             console.log('\nRemoving existing admin...');
             await Admin.deleteOne({ email: 'admin@ruet.ac.bd' });
         }
-
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(process.env.DEFAULT_ADMIN_PASSWORD, salt);
-
         const admin = new Admin({
             admin_id: 'ADM001',
             email: 'admin@ruet.ac.bd',
@@ -35,7 +33,6 @@ async function createDefaultAdmin() {
                 office: 'Admin Building, Room 101'
             }
         });
-
         await admin.save();
         console.log('Default admin created successfully');
         console.log('\nAdmin Details:');
@@ -52,13 +49,11 @@ async function createDefaultAdmin() {
         }
     }
 }
-
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
     process.exit(1);
 });
-
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (error) => {
     console.error('Unhandled Rejection:', error);

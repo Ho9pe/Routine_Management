@@ -3,9 +3,11 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('@fast-csv/parse');
+
 const Course = require('../../src/models/Course');
 const { determineCourseType } = require('../../src/utils/courseTypeUtils');
 
+// Validate course data
 async function validateCourseData(data) {
     const errors = [];
     if (!data || !Array.isArray(data) || data.length === 0) {
@@ -35,7 +37,7 @@ async function validateCourseData(data) {
     });
     return errors;
 }
-
+// Process course data from CSV file
 async function processCourseData(filePath) {
     return new Promise((resolve, reject) => {
         const courses = [];
@@ -46,7 +48,7 @@ async function processCourseData(filePath) {
         stream.on('end', () => resolve(courses));
     });
 }
-
+// Seed courses
 async function seedCourses() {
     let connection;
     try {
@@ -88,29 +90,23 @@ async function seedCourses() {
                 course_type: determineCourseType(courseCode, courseName)
             };
         });
-
         // Insert courses
         const result = await Course.insertMany(courses, {
             ordered: true,
             timeout: 30000
         });
-
         // Log results
         console.log(`\nSuccessfully seeded ${result.length} courses`);
-        
         // Log statistics
         const stats = result.reduce((acc, course) => {
             acc.semesters = acc.semesters || {};
             acc.departments = acc.departments || {};
             acc.types = acc.types || {};
-
             acc.semesters[course.semester] = (acc.semesters[course.semester] || 0) + 1;
             acc.departments[course.department] = (acc.departments[course.department] || 0) + 1;
             acc.types[course.course_type] = (acc.types[course.course_type] || 0) + 1;
-
             return acc;
         }, {});
-
         console.log('\nCourse Statistics:');
         console.log('\nBy Semester:');
         Object.entries(stats.semesters)
@@ -118,19 +114,16 @@ async function seedCourses() {
             .forEach(([semester, count]) => {
                 console.log(`Semester ${semester}: ${count} courses`);
             });
-
         console.log('\nBy Department:');
         Object.entries(stats.departments)
             .forEach(([dept, count]) => {
                 console.log(`${dept}: ${count} courses`);
             });
-
         console.log('\nBy Type:');
         Object.entries(stats.types)
             .forEach(([type, count]) => {
                 console.log(`${type}: ${count} courses`);
             });
-
     } catch (error) {
         console.error('Error:', error.message);
         process.exit(1);
@@ -141,13 +134,11 @@ async function seedCourses() {
         }
     }
 }
-
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
     process.exit(1);
 });
-
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (error) => {
     console.error('Unhandled Rejection:', error);

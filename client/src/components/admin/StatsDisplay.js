@@ -1,5 +1,6 @@
 import styles from './StatsDisplay.module.css';
 
+// StatsDisplay component to display statistics
 const StatsDisplay = ({ data, type }) => {
     const getStats = () => {
         switch(type) {
@@ -9,13 +10,11 @@ const StatsDisplay = ({ data, type }) => {
                     value: data.length,
                     color: 'blue'
                 }];
-
             case 'teachers':
                 const teacherRanks = data.reduce((acc, teacher) => {
                     acc[teacher.academic_rank] = (acc[teacher.academic_rank] || 0) + 1;
                     return acc;
                 }, {});
-
                 return [
                     {
                         title: 'Total Teachers',
@@ -28,7 +27,6 @@ const StatsDisplay = ({ data, type }) => {
                         color: 'purple'
                     }))
                 ];
-
             case 'courses':
                 const courseTypes = data.reduce((acc, course) => {
                     acc[course.course_type] = (acc[course.course_type] || 0) + 1;
@@ -38,7 +36,6 @@ const StatsDisplay = ({ data, type }) => {
                 const totalCreditHours = data.reduce((sum, course) => 
                     sum + course.credit_hours, 0
                 );
-                
                 return [
                     {
                         title: 'Total Courses',
@@ -56,12 +53,10 @@ const StatsDisplay = ({ data, type }) => {
                         color: type
                     }))
                 ];
-
             default:
                 return [];
         }
     };
-
     return (
         <div className={styles.statsGrid}>
             {getStats().map((stat, index) => (

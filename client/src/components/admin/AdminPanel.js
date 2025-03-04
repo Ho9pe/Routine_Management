@@ -1,10 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
-import styles from './AdminPanel.module.css';
+
+import StatsDisplay from './StatsDisplay';
 import ErrorMessage from '../common/ErrorMessage';
 import { semesterToYear } from '@/lib/semesterMapping';
-import StatsDisplay from './StatsDisplay';
+import styles from './AdminPanel.module.css';
 
+// AdminPanel component
 export default function AdminPanel() {
     const [activeTab, setActiveTab] = useState('students');
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,11 +17,11 @@ export default function AdminPanel() {
         key: null, 
         direction: 'asc' 
     });
-
+    // Fetch data on initial render and whenever the active tab changes
     useEffect(() => {
         fetchData();
     }, [activeTab]);
-
+    // Fetch data from the server
     const fetchData = async () => {
         try {
             const response = await fetch(`/api/admin/${activeTab}`, {
@@ -28,7 +30,6 @@ export default function AdminPanel() {
                 }
             });
             const result = await response.json();
-            
             if (response.ok) {
                 setData(result);
             } else {
@@ -40,10 +41,9 @@ export default function AdminPanel() {
             setLoading(false);
         }
     };
-
+    // Handle delete operation
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this item?')) return;
-
         try {
             const response = await fetch(`/api/admin/${activeTab}/${id}`, {
                 method: 'DELETE',
@@ -51,7 +51,6 @@ export default function AdminPanel() {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-
             if (response.ok) {
                 fetchData(); // Refresh the list
             } else {
@@ -62,7 +61,7 @@ export default function AdminPanel() {
             setError('Failed to delete item');
         }
     };
-
+    // Filter data based on search term and active tab
     const filteredData = data.filter(item => {
         const searchString = searchTerm.toLowerCase();
         switch (activeTab) {
@@ -88,7 +87,7 @@ export default function AdminPanel() {
                 return true;
         }
     });
-
+    // Sort data based on sortConfig
     const handleSort = (key) => {
         let direction = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -96,48 +95,41 @@ export default function AdminPanel() {
         }
         setSortConfig({ key, direction });
     };
-
+    // Get sorted data based on sortConfig
     const getSortedData = (data) => {
         if (!sortConfig.key) return data;
-    
         return [...data].sort((a, b) => {
             let aValue = a[sortConfig.key];
             let bValue = b[sortConfig.key];
-    
             // Handle nested properties
             if (sortConfig.key.includes('.')) {
                 const [parent, child] = sortConfig.key.split('.');
                 aValue = a[parent]?.[child];
                 bValue = b[parent]?.[child];
             }
-    
             // Handle null/undefined values
             if (aValue == null) return 1;
             if (bValue == null) return -1;
-    
             // Special handling for course_code sorting
             if (sortConfig.key === 'course_code') {
                 // Extract the numeric part after the hyphen
                 const aNum = parseInt(aValue.split('-')[1]);
                 const bNum = parseInt(bValue.split('-')[1]);
-                
                 if (aNum < bNum) return sortConfig.direction === 'asc' ? -1 : 1;
                 if (aNum > bNum) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
             }
-    
             // Default string comparison
             if (typeof aValue === 'string') {
                 aValue = aValue.toLowerCase();
                 bValue = bValue.toLowerCase();
             }
-    
             if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
             if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
             return 0;
         });
     };
-
+    // SortableHeader component
     const SortableHeader = ({ label, sortKey }) => (
         <th 
             onClick={() => handleSort(sortKey)}
@@ -153,7 +145,7 @@ export default function AdminPanel() {
             </div>
         </th>
     );
-
+    // Render student table
     const renderStudentTable = () => (
         <table className={styles.table}>
             <thead>
@@ -191,7 +183,7 @@ export default function AdminPanel() {
             </tbody>
         </table>
     );
-
+    // Render teacher table
     const renderTeacherTable = () => (
         <table className={styles.table}>
             <thead>
@@ -225,7 +217,7 @@ export default function AdminPanel() {
             </tbody>
         </table>
     );
-
+    // Render course table
     const renderCourseTable = () => (
         <table className={styles.table}>
             <thead>
@@ -267,14 +259,12 @@ export default function AdminPanel() {
             </tbody>
         </table>
     );
-
+    // Render the table based on the active tab
     const renderTable = () => {
-        if (loading) return <div className={styles.loading}>Loading...</div>;
-        
+        if (loading) return <div className={styles.loading}>Loading...</div>;        
         if (filteredData.length === 0) {
             return <div className={styles.noData}>No {activeTab} found</div>;
         }
-    
         return (
             <div className={styles.tableContainer}>
                 <StatsDisplay data={data} type={activeTab} />
@@ -286,7 +276,6 @@ export default function AdminPanel() {
             </div>
         );
     };
-
     return (
         <div className={styles.adminPanel}>
             <div className={styles.header}>

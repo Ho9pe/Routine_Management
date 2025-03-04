@@ -1,25 +1,26 @@
 'use client';
 import { useEffect } from 'react';
+
 import styles from './ErrorMessage.module.css';
 
+// ErrorMessage component
 export default function ErrorMessage({ message, onDismiss, duration = 5000 }) {
+    // Auto-dismissal of error message
     useEffect(() => {
         if (message) {
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
             });
-
             const timer = setTimeout(() => {
                 onDismiss();
             }, duration);
-
             return () => clearTimeout(timer);
         }
     }, [message, duration, onDismiss]);
-
-    if (!message) return null;
-
+    if (!message) 
+        return null;
+    // Error message component
     return (
         <div className={styles.errorContainer}>
             <div className={styles.errorContent}>

@@ -1,5 +1,6 @@
 const { body, validationResult } = require('express-validator');
 
+// Validate registration data
 const validateRegistration = [
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 6 }),

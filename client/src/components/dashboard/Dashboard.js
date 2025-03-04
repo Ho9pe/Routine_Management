@@ -1,11 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
+
 import { useAuth } from '@/context/AuthContext';
-import styles from './Dashboard.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 import { semesterToYear, semesterOptions } from '@/lib/semesterMapping';
 import TeacherDashboardCourses from './TeacherDashboardCourses';
+import styles from './Dashboard.module.css';
 
+// Dashboard component
 export default function Dashboard() {
     const { user } = useAuth();
     const [profileData, setProfileData] = useState(null);
@@ -16,26 +18,24 @@ export default function Dashboard() {
     const [isResettingPassword, setIsResettingPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-
+    // Fetch profile data on initial render
     useEffect(() => {
         if (user) {
             fetchProfileData();
         }
     }, [user]);
-
+    // Fetch profile data based on user role
     const fetchProfileData = async () => {
         try {
             const endpoint = user?.role === 'teacher' 
                 ? '/api/teachers/profile'
                 : `/api/students/profile`;
-            
             const response = await fetch(endpoint, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
             const data = await response.json();
-            
             if (response.ok) {
                 // Transform teacher data to ensure contact_info exists
                 if (user?.role === 'teacher') {
@@ -59,12 +59,12 @@ export default function Dashboard() {
             setLoading(false);
         }
     };
-
+    // Handle edit profile button click
     const handleStartEdit = () => {
         setEditFormData({ ...profileData });
         setIsEditing(true);
     };
-
+    // Handle cancel button click
     const handleCancel = () => {
         setEditFormData(null);
         setIsEditing(false);
@@ -72,7 +72,7 @@ export default function Dashboard() {
         setNewPassword('');
         setConfirmPassword('');
     };
-
+    // Handle form input change
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name.includes('.')) {
@@ -91,7 +91,7 @@ export default function Dashboard() {
             }));
         }
     };
-
+    // Handle password reset form submission
     const handlePasswordReset = async (e) => {
         e.preventDefault();
         if (newPassword.length < 6) {
@@ -110,10 +110,8 @@ export default function Dashboard() {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({ newPassword })
-            });
-            
+            });    
             const data = await response.json();
-            
             if (response.ok) {
                 setError('');
                 setIsResettingPassword(false);
@@ -127,14 +125,13 @@ export default function Dashboard() {
             setError('Failed to reset password. Please try again.');
         }
     };
-
+    // Handle profile update form submission
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
             const endpoint = user?.role === 'teacher' 
                 ? '/api/teachers/profile'
                 : `/api/students/profile`;
-            
             // Transform data based on user role
             const updateData = user?.role === 'teacher' 
                 ? {
@@ -146,7 +143,6 @@ export default function Dashboard() {
                     }
                 }
                 : editFormData;
-    
             const response = await fetch(endpoint, {
                 method: 'PUT',
                 headers: {
@@ -155,7 +151,6 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify(updateData)
             });
-            
             const data = await response.json();
             if (response.ok) {
                 // Transform teacher data to ensure contact_info exists
@@ -180,7 +175,7 @@ export default function Dashboard() {
             setError('Failed to update profile');
         }
     };
-
+    // Render teacher edit form
     const renderTeacherEditForm = () => (
         <>
             <div className={styles.formGroup}>
@@ -248,7 +243,7 @@ export default function Dashboard() {
             </div>
         </>
     );
-
+    // Render teacher profile
     const renderTeacherProfile = () => {
         if(!profileData) return null;
         return (
@@ -266,7 +261,7 @@ export default function Dashboard() {
             </>
         );
     };
-
+    // Render student edit form
     const renderStudentEditForm = () => (
         <>
             <div className={styles.formGroup}>
@@ -327,7 +322,7 @@ export default function Dashboard() {
             </div>
         </>
     );
-
+    // Render student profile
     const renderStudentProfile = () => {
         if(!profileData) return null;
         return (
@@ -343,15 +338,13 @@ export default function Dashboard() {
             </>
         );
     };
-
     if (loading) return <div className={styles.loading}>Loading...</div>;
-
+    // Render dashboard
     return (
         <div className={styles.dashboard}>
             <h2 className={styles.title}>
                 {user?.role === 'teacher' ? 'Teacher' : 'Student'} Dashboard
             </h2>
-            
             {error && (
                 <ErrorMessage 
                     message={error}
@@ -359,7 +352,6 @@ export default function Dashboard() {
                     duration={10000}
                 />
             )}
-
             <div className={styles.profileCard}>
                 <h3 className={styles.subtitle}>Profile Information</h3>
                 {isEditing ? (
@@ -397,7 +389,6 @@ export default function Dashboard() {
                         </div>
                     </div>
                 )}
-
                 {isResettingPassword && (
                     <form onSubmit={handlePasswordReset} className={styles.passwordResetForm}>
                         <div className={styles.formGroup}>
@@ -437,7 +428,6 @@ export default function Dashboard() {
                     </form>
                 )}
             </div>
-
             {user?.role === 'teacher' && <TeacherDashboardCourses />}
         </div>
     );

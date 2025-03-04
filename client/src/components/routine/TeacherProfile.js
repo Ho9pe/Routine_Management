@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
+
 import styles from './TeacherProfile.module.css';
 
+// Teacher Profile component
 export default function TeacherProfile() {
     const [profile, setProfile] = useState({
         full_name: '',
@@ -15,11 +17,11 @@ export default function TeacherProfile() {
     });
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState('');
-
+    // Fetch teacher profile on component mount
     useEffect(() => {
         fetchProfile();
     }, []);
-
+    // Fetch teacher profile
     const fetchProfile = async () => {
         try {
             const response = await fetch('/api/teachers/profile', {
@@ -37,7 +39,7 @@ export default function TeacherProfile() {
             setError('Failed to fetch profile');
         }
     };
-
+    // Update teacher profile
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
@@ -60,7 +62,7 @@ export default function TeacherProfile() {
             setError('Failed to update profile');
         }
     };
-
+    // Handle input change
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name.includes('.')) {
@@ -79,12 +81,11 @@ export default function TeacherProfile() {
             }));
         }
     };
-
+    // Render component
     return (
         <div className={styles.profile}>
             <h2>Teacher Profile</h2>
             {error && <div className={styles.error}>{error}</div>}
-            
             <form onSubmit={handleUpdate} className={styles.form}>
                 <div className={styles.formGroup}>
                     <label>Full Name</label>
@@ -96,7 +97,6 @@ export default function TeacherProfile() {
                         disabled={!isEditing}
                     />
                 </div>
-
                 <div className={styles.formGroup}>
                     <label>Academic Rank</label>
                     <select
@@ -112,7 +112,6 @@ export default function TeacherProfile() {
                         <option value="Lecturer">Lecturer</option>
                     </select>
                 </div>
-
                 <div className={styles.formGroup}>
                     <label>Department</label>
                     <input
@@ -123,7 +122,6 @@ export default function TeacherProfile() {
                         disabled={!isEditing}
                     />
                 </div>
-
                 <div className={styles.contactInfo}>
                     <h3>Contact Information</h3>
                     <div className={styles.formGroup}>
@@ -136,7 +134,6 @@ export default function TeacherProfile() {
                             disabled={!isEditing}
                         />
                     </div>
-
                     <div className={styles.formGroup}>
                         <label>Office</label>
                         <input
@@ -147,7 +144,6 @@ export default function TeacherProfile() {
                             disabled={!isEditing}
                         />
                     </div>
-
                     <div className={styles.formGroup}>
                         <label>Email</label>
                         <input
@@ -159,7 +155,6 @@ export default function TeacherProfile() {
                         />
                     </div>
                 </div>
-
                 <div className={styles.actions}>
                     {isEditing ? (
                         <>

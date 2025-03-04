@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
+
 import { TIME_SLOTS, WORKING_DAYS } from '../../../../server/constants/timeSlots';
 import styles from './PreferenceManager.module.css';
 
+// Component to manage schedule preferences
 export default function PreferenceManager() {
     const [preferences, setPreferences] = useState([]);
     const [courses, setCourses] = useState([]);
@@ -12,12 +14,12 @@ export default function PreferenceManager() {
         preferred_time_slot: '',
         course_id: ''
     });
-
+    // Fetch preferences and courses on component mount
     useEffect(() => {
         fetchPreferences();
         fetchCourses();
     }, []);
-
+    // Fetch preferences from the server
     const fetchPreferences = async () => {
         try {
             const response = await fetch('/api/preferences', {
@@ -35,7 +37,7 @@ export default function PreferenceManager() {
             setError('Failed to fetch preferences');
         }
     };
-
+    // Fetch courses from the server
     const fetchCourses = async () => {
         try {
             const response = await fetch('/api/courses', {
@@ -51,7 +53,7 @@ export default function PreferenceManager() {
             setError('Failed to fetch courses');
         }
     };
-
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -78,7 +80,7 @@ export default function PreferenceManager() {
             setError('Failed to save preference');
         }
     };
-
+    // Handle preference deletion
     const handleDelete = async (preferenceId) => {
         try {
             const response = await fetch(`/api/preferences/${preferenceId}`, {
@@ -94,12 +96,11 @@ export default function PreferenceManager() {
             setError('Failed to delete preference');
         }
     };
-
+    // Render the component
     return (
         <div className={styles.preferenceManager}>
             <h2>Schedule Preferences</h2>
             {error && <div className={styles.error}>{error}</div>}
-
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>
                     <label>Day</label>
@@ -117,7 +118,6 @@ export default function PreferenceManager() {
                         ))}
                     </select>
                 </div>
-
                 <div className={styles.formGroup}>
                     <label>Time Slot</label>
                     <select
@@ -136,7 +136,6 @@ export default function PreferenceManager() {
                         ))}
                     </select>
                 </div>
-
                 <div className={styles.formGroup}>
                     <label>Course</label>
                     <select
@@ -155,12 +154,10 @@ export default function PreferenceManager() {
                         ))}
                     </select>
                 </div>
-
                 <button type="submit" className={styles.submitBtn}>
                     Add Preference
                 </button>
             </form>
-
             <div className={styles.preferenceList}>
                 <h3>Current Preferences</h3>
                 <div className={styles.preferences}>

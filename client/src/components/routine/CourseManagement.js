@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+
 import { useAuth } from '@/context/AuthContext';
-import styles from './CourseManagement.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 import { semesterToYear } from '@/lib/semesterMapping';
 import { getSemesterFromCourseCode } from '@/lib/courseUtils';
 import PreferenceEditor from './PreferenceEditor';
+import styles from './CourseManagement.module.css';
 
+// CourseManagement component
 export default function CourseManagement() {
     const { user } = useAuth();
     const [courses, setCourses] = useState([]);
@@ -21,7 +23,7 @@ export default function CourseManagement() {
         sections: []
     });
     const [confirmDelete, setConfirmDelete] = useState(null);
-
+    // Fetch courses on component mount
     useEffect(() => {
         if (user?.role === 'student') {
             fetchStudentProfile();
@@ -30,7 +32,7 @@ export default function CourseManagement() {
             fetchAssignedCourses();
         }
     }, [user]);
-
+    // Fetch student profile
     const fetchStudentProfile = async () => {
         try {
             const response = await fetch('/api/students/profile', {
@@ -46,7 +48,7 @@ export default function CourseManagement() {
             console.error('Error fetching student profile:', error);
         }
     };
-
+    // Fetch courses
     const fetchCourses = async () => {
         try {
             const response = await fetch('/api/courses', {
@@ -55,7 +57,6 @@ export default function CourseManagement() {
                 }
             });
             const data = await response.json();
-            
             if (response.ok) {
                 setCourses(data);
             } else {
@@ -67,7 +68,7 @@ export default function CourseManagement() {
             setLoading(false);
         }
     };
-
+    // Fetch assigned courses
     const fetchAssignedCourses = async () => {
         try {
             const response = await fetch('/api/teachers/courses', {
@@ -75,11 +76,9 @@ export default function CourseManagement() {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-
             if (!response.ok) {
                 throw new Error('Failed to fetch courses');
             }
-
             const data = await response.json();
             setAssignedCourses(data.assignments || []);
             setAvailableCourses(data.availableCourses || []);
@@ -90,34 +89,29 @@ export default function CourseManagement() {
             setLoading(false);
         }
     };
-
+    // Assign course to teacher
     const handleAssignCourse = async (e) => {
         e.preventDefault();
-        
         if (!newAssignment.course_id || !newAssignment.sections.length) {
             setError('Please select a course and at least one section');
             setShowAssignForm(false);
             return;
         }
-
         // Find existing assignment for this course
         const existingAssignment = assignedCourses.find(assignment => 
             assignment.course_id._id === newAssignment.course_id
         );
-
         // Check for duplicate sections
         if (existingAssignment) {
             const duplicateSections = newAssignment.sections.filter(section => 
                 existingAssignment.sections.includes(section)
-            );
-            
+            );  
             if (duplicateSections.length > 0) {
                 setError(`Section(s) ${duplicateSections.join(', ')} already assigned for this course`);
                 setShowAssignForm(false);
                 return;
             }
         }
-    
         try {
             const response = await fetch('/api/teachers/courses/assign', {
                 method: 'POST',
@@ -148,7 +142,7 @@ export default function CourseManagement() {
             setShowAssignForm(false);
         }
     };
-
+    // Handle course selection
     const handleCourseSelect = (e) => {
         const selectedCourse = availableCourses.find(
             course => course._id === e.target.value
@@ -162,7 +156,7 @@ export default function CourseManagement() {
             });
         }
     };
-
+    // Remove course from teacher's assignments
     const handleRemoveCourse = async (assignmentId) => {
         try {
             const response = await fetch(`/api/teachers/courses/${assignmentId}`, {
@@ -184,40 +178,37 @@ export default function CourseManagement() {
             setError('Failed to remove course');
         }
     };
-
+    // Handle remove course click
     const handleRemoveClick = (assignmentId) => {
         setConfirmDelete(assignmentId);
     };
-
+    // Confirm course removal
     const handleConfirmRemove = async () => {
         if (confirmDelete) {
             await handleRemoveCourse(confirmDelete);
             setConfirmDelete(null);
         }
     };
-
+    // Handle section change
     const handleSectionChange = (section, isChecked) => {
         const updatedSections = isChecked
             ? [...newAssignment.sections, section]
             : newAssignment.sections.filter(s => s !== section);
-
         setNewAssignment({
             ...newAssignment,
             sections: updatedSections
         });
     };
-
+    // Group assignments by course
     const groupAssignmentsByCourse = (assignments) => {
         if (!Array.isArray(assignments)) {
             console.error('Assignments is not an array:', assignments);
             return [];
         }
-
         return assignments.reduce((acc, curr) => {
             const existingCourse = acc.find(item => 
                 item.course_id._id === curr.course_id._id
             );
-    
             if (existingCourse) {
                 existingCourse.sections = [...new Set([
                     ...existingCourse.sections,
@@ -233,15 +224,13 @@ export default function CourseManagement() {
             return acc;
         }, []);
     };
-
     // Filter courses based on student's semester
     const filteredCourses = courses.filter(course => {
         if (!studentProfile?.semester) return true;
         return course.semester === studentProfile.semester;
     });
-
+    // Render component
     if (loading) return <div className={styles.loading}>Loading...</div>;
-
     return (
         <div className={styles.courseManagement}>
             <div className={styles.header}>
@@ -261,7 +250,6 @@ export default function CourseManagement() {
                     )
                 )}
             </div>
-
             {error && (
                 <ErrorMessage 
                     message={error}
@@ -269,7 +257,6 @@ export default function CourseManagement() {
                     duration={5000}
                 />
             )}
-
             {user?.role === 'teacher' ? (
                 // Teacher View
                 <div className={styles.courseGrid}>
@@ -365,7 +352,6 @@ export default function CourseManagement() {
                     </div>
                 )
             )}
-
             {showAssignForm && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
@@ -444,7 +430,6 @@ export default function CourseManagement() {
                     </div>
                 </div>
             )}
-
             {confirmDelete && (
                 <div className={styles.confirmOverlay}>
                     <div className={styles.confirmDialog}>

@@ -3,6 +3,23 @@
 ## Project Overview
 A web application for managing university class routines with role-based access for students, teachers, and administrators. The system features course management, schedule preferences, and automated routine generation.
 
+## Screenshots
+
+### Home Page
+![Home Page](./client/public/images/screenshots/home.png)
+### Student Panel
+![Student Panel](./client/public/images/screenshots/student1.png)
+![Student Panel](./client/public/images/screenshots/student2.png)
+
+### Teacher Panel
+![Teacher Panel](./client/public/images/screenshots/teacher1.png)
+![Teacher Panel](./client/public/images/screenshots/teacher2.png)
+
+### Admin Panel
+![Admin Panel](./client/public/images/screenshots/admin1.png)
+![Admin Panel](./client/public/images/screenshots/admin2.png)
+
+
 ## Current Implementation Status
 
 ### ✅ Completed Features

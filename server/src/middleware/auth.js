@@ -1,16 +1,14 @@
 const jwt = require('jsonwebtoken');
 
+// Middleware to check if the user is authenticated
 const auth = (req, res, next) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
-        
         if (!token) {
             return res.status(401).json({ message: 'No authentication token provided' });
         }
-
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);    
             // Debug logging
             console.log('Auth middleware decoded token:', {
                 userId: decoded.id,
@@ -19,7 +17,6 @@ const auth = (req, res, next) => {
                 studentRoll: decoded.student_roll,
                 semester: decoded.semester
             });
-
             req.user = decoded;
             next();
         } catch (error) {

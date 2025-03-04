@@ -1,9 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
 import styles from './RegisterForm.module.css';
 import ErrorMessage from '../common/ErrorMessage';
 
+// Initial form data for student and teacher
 const initialStudentData = {
     userType: 'student',
     full_name: '',
@@ -13,7 +15,7 @@ const initialStudentData = {
     password: '',
     confirmPassword: ''
 };
-
+// Initial form data for teacher
 const initialTeacherData = {
     userType: 'teacher',
     full_name: '',
@@ -28,14 +30,14 @@ const initialTeacherData = {
         office: ''
     }
 };
-
+// RegisterForm component
 export default function RegisterForm() {
     const router = useRouter();
     const [stage, setStage] = useState(1);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState(initialStudentData);
     const [success, setSuccess] = useState('');
-
+    // Handle form data change
     const handleChange = (e) => {
         const { name, value } = e.target;
         // Handle role switch
@@ -61,7 +63,7 @@ export default function RegisterForm() {
             }));
         }
     };
-
+    // Validate form data based on stage
     const validateStage = () => {
         switch(stage) {
             case 1:
@@ -132,19 +134,17 @@ export default function RegisterForm() {
         }
         return true;
     };
-
+    // Handle Next, Back, and Submit actions
     const handleNext = () => {
         if (validateStage()) {
             setError('');
             setStage(prev => prev + 1);
         }
     };
-
     const handleBack = () => {
         setError('');
         setStage(prev => prev - 1);
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateStage()) return;
@@ -157,7 +157,6 @@ export default function RegisterForm() {
                 full_name: formData.full_name,
                 department: formData.department
             };
-
             // Add role-specific data
             if (formData.userType === 'student') {
                 apiData.student_roll = formData.student_roll;
@@ -167,7 +166,6 @@ export default function RegisterForm() {
                 apiData.academic_rank = formData.academic_rank;
                 apiData.contact_info = formData.contact_info;
             }
-
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {
@@ -175,9 +173,7 @@ export default function RegisterForm() {
                 },
                 body: JSON.stringify(apiData)
             });
-            
             const data = await res.json();
-            
             if (res.ok) {
                 setSuccess(true);
                 setTimeout(() => {
@@ -190,7 +186,7 @@ export default function RegisterForm() {
             setError('Registration failed. Please try again.');
         }
     };
-
+    // Render Stage 1 form fields
     const renderStage1 = () => (
         <>
             <div className={styles.formGroup}>
@@ -205,7 +201,6 @@ export default function RegisterForm() {
                     <option value="teacher">Teacher</option>
                 </select>
             </div>
-
             <div className={styles.formGroup}>
                 <label>Full Name</label>
                 <input
@@ -219,7 +214,7 @@ export default function RegisterForm() {
             </div>
         </>
     );
-
+    // Render Stage 2 form fields
     const renderStage2 = () => (
         formData.userType === 'student' ? (
             <>
@@ -296,7 +291,7 @@ export default function RegisterForm() {
             </>
         )
     );
-
+    // Render Stage 3 form fields
     const renderStage3 = () => (
         <>
             <div className={styles.formGroup}>
@@ -336,7 +331,6 @@ export default function RegisterForm() {
             </div>
         </>
     );
-
     // Add a success message component
     const SuccessMessage = () => (
         <div className={styles.successOverlay}>
@@ -359,7 +353,7 @@ export default function RegisterForm() {
             </div>
         </div>
     );
-
+    // Render the RegisterForm component
     return (
         <div className={styles.registerContainer}>
             {success ? (
@@ -367,14 +361,12 @@ export default function RegisterForm() {
             ) : (
                 <div className={styles.registerCard}>
                 <h2>Register</h2>
-                
                 {error && (
                     <ErrorMessage 
                         message={error} 
                         onDismiss={() => setError('')}
                     />
                 )}
-
                 <div className={styles.stageIndicator}>
                     <div className={`${styles.stage} ${stage >= 1 ? styles.active : ''}`}>1</div>
                     <div className={styles.line}></div>
@@ -382,7 +374,6 @@ export default function RegisterForm() {
                     <div className={styles.line}></div>
                     <div className={`${styles.stage} ${stage >= 3 ? styles.active : ''}`}>3</div>
                 </div>
-
                 <form onSubmit={stage === 3 ? handleSubmit : (e) => e.preventDefault()}>
                     {stage === 1 && renderStage1()}
                     {stage === 2 && renderStage2()}

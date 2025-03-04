@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
+
 import { TIME_SLOTS, WORKING_DAYS } from '../../../../server/src/constants/timeSlots';
 import styles from './PreferenceEditor.module.css';
 
+// PreferenceEditor component to manage time preferences for a course
 export default function PreferenceEditor({ courseAssignment }) {
     const [preferences, setPreferences] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -15,31 +17,27 @@ export default function PreferenceEditor({ courseAssignment }) {
         preferred_time_slot: '',
         preference_level: 'LOW'
     });
-
     // Calculate required preferences based on sections
     const requiredPreferences = courseAssignment.sections.length;
     const currentPreferences = preferences.length;
-
+    // Fetch preferences on course change
     useEffect(() => {
         fetchPreferences();
     }, [courseAssignment.course_id._id]);
-
     // Add message timeout cleanup
     useEffect(() => {
         let messageTimeout;
-
         if (error || success) {
             messageTimeout = setTimeout(() => {
                 setError('');
                 setSuccess('');
             }, 10000);
         }
-
         return () => {
             if (messageTimeout) clearTimeout(messageTimeout);
         };
     }, [error, success]);
-
+    // Fetch preferences for the selected course
     const fetchPreferences = async () => {
         try {
             const response = await fetch('/api/preferences', {
@@ -47,17 +45,14 @@ export default function PreferenceEditor({ courseAssignment }) {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to fetch preferences');
             }
-            
             const data = await response.json();
             const coursePreferences = data.preferences.filter(p => 
                 p.course_id?._id === courseAssignment.course_id._id
             );
-            
             setPreferences(coursePreferences);
         } catch (error) {
             console.error('Error fetching preferences:', error);
@@ -66,12 +61,11 @@ export default function PreferenceEditor({ courseAssignment }) {
             setLoading(false);
         }
     };
-
+    // Handle form submission to save preference
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
-        
         try {
             const response = await fetch('/api/preferences', {
                 method: 'POST',
@@ -81,13 +75,10 @@ export default function PreferenceEditor({ courseAssignment }) {
                 },
                 body: JSON.stringify(formData)
             });
-
             const data = await response.json();
-            
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to save preference');
             }
-
             setSuccess('Preference saved successfully');
             await fetchPreferences();
             setShowForm(false);
@@ -101,10 +92,9 @@ export default function PreferenceEditor({ courseAssignment }) {
             setError(error.message || 'Failed to save preference');
         }
     };
-
+    // Handle delete preference
     const handleDelete = async (preferenceId) => {
         if (!confirm('Are you sure you want to delete this preference?')) return;
-        
         try {
             const response = await fetch(`/api/preferences/${preferenceId}`, {
                 method: 'DELETE',
@@ -123,9 +113,8 @@ export default function PreferenceEditor({ courseAssignment }) {
             setError('Failed to delete preference');
         }
     };
-
+    // Render component
     if (loading) return <div className={styles.loading}>Loading...</div>;
-
     return (
         <div className={styles.preferenceEditor}>
             {(error || success) && (
@@ -145,7 +134,6 @@ export default function PreferenceEditor({ courseAssignment }) {
                     </button>
                 </div>
             )}
-
             <div className={styles.header}>
                 <div className={styles.headerInfo}>
                     <h3>Time Preferences</h3>
@@ -162,7 +150,6 @@ export default function PreferenceEditor({ courseAssignment }) {
                     {showForm ? 'Cancel' : 'Add Preference'}
                 </button>
             </div>
-
             {showForm && (
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.formGroup}>
@@ -181,7 +168,6 @@ export default function PreferenceEditor({ courseAssignment }) {
                             ))}
                         </select>
                     </div>
-
                     <div className={styles.formGroup}>
                         <label>Time Slot</label>
                         <select
@@ -200,7 +186,6 @@ export default function PreferenceEditor({ courseAssignment }) {
                             ))}
                         </select>
                     </div>
-
                     <div className={styles.formGroup}>
                         <label>Preference Level</label>
                         <select
@@ -217,13 +202,11 @@ export default function PreferenceEditor({ courseAssignment }) {
                             <option value="UNAVAILABLE">Unavailable</option>
                         </select>
                     </div>
-
                     <button type="submit" className={styles.submitButton}>
                         Save Preference
                     </button>
                 </form>
             )}
-
             <div className={styles.preferenceList}>
                 {preferences.length > 0 ? (
                     preferences.map(pref => (
